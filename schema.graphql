@@ -23,13 +23,13 @@ type Query {
 interface Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
 }
 
 type Story implements Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
     # end of Item
     descendants: Int!
     kids: [Comment!]!
@@ -41,7 +41,7 @@ type Story implements Item {
 type Comment implements Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
     # end of Item
     kids: [Comment!]!
     parent: Item!
@@ -51,7 +51,7 @@ type Comment implements Item {
 type Ask implements Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
     # end of Item
     descendants: Int!
     kids: [Comment!]!
@@ -64,7 +64,7 @@ type Ask implements Item {
 type Job implements Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
     # end of Item
     score: Int!
     text: String!
@@ -75,7 +75,7 @@ type Job implements Item {
 type Poll implements Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
     # end of Item
     descendants: Int!
     kids: [Comment!]!
@@ -88,7 +88,7 @@ type Poll implements Item {
 type PollOpt implements Item {
     id: ID!
     by: String!
-    time: Time!
+    time: Timestamp!
     # end of Item
     poll: Poll!
     score: Int!
@@ -98,13 +98,13 @@ type PollOpt implements Item {
 type User {
     id: ID!
     about: String
-    created: Time!
+    created: Timestamp!
     karma: Int
     delay: Int
     submitted: [Item!]!
 }
 
-type Time {
+type Timestamp {
     epoch: Int!
     iso8601: String!
 }
