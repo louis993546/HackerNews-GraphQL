@@ -6,7 +6,7 @@ import (
 	"os"
 
 	"github.com/99designs/gqlgen/handler"
-	"github.com/louistsaitszho/hackernews-graphql"
+	"github.com/louistsaitszho/hackernewsgraphql"
 )
 
 const defaultPort = "8080"
@@ -18,7 +18,7 @@ func main() {
 	}
 
 	http.Handle("/", handler.Playground("GraphQL playground", "/query"))
-	http.Handle("/query", handler.GraphQL(hackernews_graphql.NewExecutableSchema(hackernews_graphql.Config{Resolvers: &hackernews_graphql.Resolver{}})))
+	http.Handle("/query", handler.GraphQL(hackernewsgraphql.NewExecutableSchema(hackernewsgraphql.Config{Resolvers: &hackernewsgraphql.Resolver{}})))
 
 	log.Printf("connect to http://localhost:%s/ for GraphQL playground", port)
 	log.Fatal(http.ListenAndServe(":"+port, nil))

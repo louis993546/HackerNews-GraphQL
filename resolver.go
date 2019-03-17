@@ -1,4 +1,4 @@
-package hackernews_graphql
+package hackernewsgraphql
 
 import (
 	"context"

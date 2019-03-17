@@ -1,4 +1,4 @@
-module github.com/louistsaitszho/hackernews-graphql
+module github.com/louistsaitszho/hackernewsgraphql
 
 go 1.12
 
