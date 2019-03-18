@@ -1,3 +1,4 @@
+//go:generate go run github.com/99designs/gqlgen
 package hackernewsgraphql
 
 import (
@@ -13,7 +14,9 @@ func (r *Resolver) Query() QueryResolver {
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Item(ctx context.Context, id string) (Item, error) {
-	panic("not implemented")
+	// use the id to fetch that from the api
+	// use the type internally to convert it to the right type
+	// return that
 }
 func (r *queryResolver) Story(ctx context.Context, id string) (*Story, error) {
 	panic("not implemented")
