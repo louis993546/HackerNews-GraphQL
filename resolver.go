@@ -17,13 +17,14 @@ func (r *Resolver) User() UserResolver {
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
-	item, err := GetItem(strconv.Atoi(id))
+	idInt, _ := strconv.Atoi(id)
+	item, err := GetItem(idInt)
 
 	if err != nil {
 		return nil, err
 	}
 
-	return item, nil
+	return &item, nil
 }
 func (r *queryResolver) User(ctx context.Context, id string) (*User, error) {
 	panic("not implemented")
