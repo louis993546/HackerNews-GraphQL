@@ -1,11 +1,11 @@
 type Query {
     item(id: ID!): Item!
-    story(id: ID!): Story!
-    comment(id: ID!): Comment!
-    ask(id: ID!): Ask!
-    job(id: ID!): Job!
-    poll(id: ID!): Poll!
-    pollopt(id: ID!): PollOpt!
+    # story(id: ID!): Story!
+    # comment(id: ID!): Comment!
+    # ask(id: ID!): Ask!
+    # job(id: ID!): Job!
+    # poll(id: ID!): Poll!
+    # pollopt(id: ID!): PollOpt!
     user(id: String!): User!
 
     topStories: [Story!]!
@@ -13,7 +13,7 @@ type Query {
     bestStories: [Story!]!
 
     askStories: [Ask!]!
-    showStories: [Story!]!
+    showStories: [Story!]!  # TODO: not very sure about this
     jobStories: [Job!]!
 
     updatedItems: [Item!]!
@@ -56,7 +56,7 @@ type Ask implements Item {
     descendants: Int!
     kids: [Comment!]!
     score: Int!
-    text: String!   # TODO specify this is html?
+    text: String!   # TODO: specify this is html?
     title: String!
     url: String!
 }

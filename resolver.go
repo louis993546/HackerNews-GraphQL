@@ -1,4 +1,3 @@
-//go:generate go run github.com/99designs/gqlgen
 package hackernewsgraphql
 
 import (
@@ -10,30 +9,13 @@ type Resolver struct{}
 func (r *Resolver) Query() QueryResolver {
 	return &queryResolver{r}
 }
+func (r *Resolver) User() UserResolver {
+	return &userResolver{r}
+}
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Item(ctx context.Context, id string) (Item, error) {
-	// use the id to fetch that from the api
-	// use the type internally to convert it to the right type
-	// return that
-}
-func (r *queryResolver) Story(ctx context.Context, id string) (*Story, error) {
-	panic("not implemented")
-}
-func (r *queryResolver) Comment(ctx context.Context, id string) (*Comment, error) {
-	panic("not implemented")
-}
-func (r *queryResolver) Ask(ctx context.Context, id string) (*Ask, error) {
-	panic("not implemented")
-}
-func (r *queryResolver) Job(ctx context.Context, id string) (*Job, error) {
-	panic("not implemented")
-}
-func (r *queryResolver) Poll(ctx context.Context, id string) (*Poll, error) {
-	panic("not implemented")
-}
-func (r *queryResolver) Pollopt(ctx context.Context, id string) (*PollOpt, error) {
+func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
 	panic("not implemented")
 }
 func (r *queryResolver) User(ctx context.Context, id string) (*User, error) {
@@ -61,5 +43,14 @@ func (r *queryResolver) UpdatedItems(ctx context.Context) ([]Item, error) {
 	panic("not implemented")
 }
 func (r *queryResolver) UpdatedProfiles(ctx context.Context) ([]User, error) {
+	panic("not implemented")
+}
+
+type userResolver struct{ *Resolver }
+
+func (r *userResolver) Created(ctx context.Context, obj *User) (*Timestamp, error) {
+	panic("not implemented")
+}
+func (r *userResolver) Submitted(ctx context.Context, obj *User) ([]Item, error) {
 	panic("not implemented")
 }

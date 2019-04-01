@@ -2,10 +2,6 @@
 
 package hackernewsgraphql
 
-type Item interface {
-	IsItem()
-}
-
 type Ask struct {
 	ID          string    `json:"id"`
 	By          string    `json:"by"`
@@ -84,13 +80,4 @@ func (Story) IsItem() {}
 type Timestamp struct {
 	Epoch   int    `json:"epoch"`
 	Iso8601 string `json:"iso8601"`
-}
-
-type User struct {
-	ID        string    `json:"id"`
-	About     *string   `json:"about"`
-	Created   Timestamp `json:"created"`
-	Karma     *int      `json:"karma"`
-	Delay     *int      `json:"delay"`
-	Submitted []Item    `json:"submitted"`
 }

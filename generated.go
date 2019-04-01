@@ -35,6 +35,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Query() QueryResolver
+	User() UserResolver
 }
 
 type DirectiveRoot struct {
@@ -95,12 +96,6 @@ type ComplexityRoot struct {
 
 	Query struct {
 		Item            func(childComplexity int, id string) int
-		Story           func(childComplexity int, id string) int
-		Comment         func(childComplexity int, id string) int
-		Ask             func(childComplexity int, id string) int
-		Job             func(childComplexity int, id string) int
-		Poll            func(childComplexity int, id string) int
-		Pollopt         func(childComplexity int, id string) int
 		User            func(childComplexity int, id string) int
 		TopStories      func(childComplexity int) int
 		NewStories      func(childComplexity int) int
@@ -139,13 +134,7 @@ type ComplexityRoot struct {
 }
 
 type QueryResolver interface {
-	Item(ctx context.Context, id string) (Item, error)
-	Story(ctx context.Context, id string) (*Story, error)
-	Comment(ctx context.Context, id string) (*Comment, error)
-	Ask(ctx context.Context, id string) (*Ask, error)
-	Job(ctx context.Context, id string) (*Job, error)
-	Poll(ctx context.Context, id string) (*Poll, error)
-	Pollopt(ctx context.Context, id string) (*PollOpt, error)
+	Item(ctx context.Context, id string) (*Item, error)
 	User(ctx context.Context, id string) (*User, error)
 	TopStories(ctx context.Context) ([]Story, error)
 	NewStories(ctx context.Context) ([]Story, error)
@@ -155,6 +144,11 @@ type QueryResolver interface {
 	JobStories(ctx context.Context) ([]Job, error)
 	UpdatedItems(ctx context.Context) ([]Item, error)
 	UpdatedProfiles(ctx context.Context) ([]User, error)
+}
+type UserResolver interface {
+	Created(ctx context.Context, obj *User) (*Timestamp, error)
+
+	Submitted(ctx context.Context, obj *User) ([]Item, error)
 }
 
 type executableSchema struct {
@@ -443,78 +437,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.Item(childComplexity, args["id"].(string)), true
 
-	case "Query.Story":
-		if e.complexity.Query.Story == nil {
-			break
-		}
-
-		args, err := ec.field_Query_story_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Story(childComplexity, args["id"].(string)), true
-
-	case "Query.Comment":
-		if e.complexity.Query.Comment == nil {
-			break
-		}
-
-		args, err := ec.field_Query_comment_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Comment(childComplexity, args["id"].(string)), true
-
-	case "Query.Ask":
-		if e.complexity.Query.Ask == nil {
-			break
-		}
-
-		args, err := ec.field_Query_ask_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Ask(childComplexity, args["id"].(string)), true
-
-	case "Query.Job":
-		if e.complexity.Query.Job == nil {
-			break
-		}
-
-		args, err := ec.field_Query_job_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Job(childComplexity, args["id"].(string)), true
-
-	case "Query.Poll":
-		if e.complexity.Query.Poll == nil {
-			break
-		}
-
-		args, err := ec.field_Query_poll_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Poll(childComplexity, args["id"].(string)), true
-
-	case "Query.Pollopt":
-		if e.complexity.Query.Pollopt == nil {
-			break
-		}
-
-		args, err := ec.field_Query_pollopt_args(context.TODO(), rawArgs)
-		if err != nil {
-			return 0, false
-		}
-
-		return e.complexity.Query.Pollopt(childComplexity, args["id"].(string)), true
-
 	case "Query.User":
 		if e.complexity.Query.User == nil {
 			break
@@ -761,12 +683,12 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "schema.graphql", Input: `type Query {
     item(id: ID!): Item!
-    story(id: ID!): Story!
-    comment(id: ID!): Comment!
-    ask(id: ID!): Ask!
-    job(id: ID!): Job!
-    poll(id: ID!): Poll!
-    pollopt(id: ID!): PollOpt!
+    # story(id: ID!): Story!
+    # comment(id: ID!): Comment!
+    # ask(id: ID!): Ask!
+    # job(id: ID!): Job!
+    # poll(id: ID!): Poll!
+    # pollopt(id: ID!): PollOpt!
     user(id: String!): User!
 
     topStories: [Story!]!
@@ -774,7 +696,7 @@ var parsedSchema = gqlparser.MustLoadSchema(
     bestStories: [Story!]!
 
     askStories: [Ask!]!
-    showStories: [Story!]!
+    showStories: [Story!]!  # TODO: not very sure about this
     jobStories: [Job!]!
 
     updatedItems: [Item!]!
@@ -817,7 +739,7 @@ type Ask implements Item {
     descendants: Int!
     kids: [Comment!]!
     score: Int!
-    text: String!   # TODO specify this is html?
+    text: String!   # TODO: specify this is html?
     title: String!
     url: String!
 }
@@ -889,91 +811,7 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 	return args, nil
 }
 
-func (ec *executionContext) field_Query_ask_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_comment_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
 func (ec *executionContext) field_Query_item_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_job_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_poll_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_pollopt_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
-	var err error
-	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["id"] = arg0
-	return args, nil
-}
-
-func (ec *executionContext) field_Query_story_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
 	var arg0 string
@@ -2022,208 +1860,10 @@ func (ec *executionContext) _Query_item(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(Item)
+	res := resTmp.(*Item)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNItem2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐItem(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_story(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_story_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Story(rctx, args["id"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*Story)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNStory2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐStory(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_comment(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_comment_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Comment(rctx, args["id"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*Comment)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNComment2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐComment(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_ask(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_ask_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Ask(rctx, args["id"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*Ask)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNAsk2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐAsk(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_job(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_job_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Job(rctx, args["id"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*Job)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNJob2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐJob(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_poll(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_poll_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Poll(rctx, args["id"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*Poll)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPoll2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐPoll(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Query_pollopt(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
-	ctx = ec.Tracer.StartFieldExecution(ctx, field)
-	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
-	rctx := &graphql.ResolverContext{
-		Object: "Query",
-		Field:  field,
-		Args:   nil,
-	}
-	ctx = graphql.WithResolverContext(ctx, rctx)
-	rawArgs := field.ArgumentMap(ec.Variables)
-	args, err := ec.field_Query_pollopt_args(ctx, rawArgs)
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	rctx.Args = args
-	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
-	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Pollopt(rctx, args["id"].(string))
-	})
-	if resTmp == nil {
-		if !ec.HasError(rctx) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(*PollOpt)
-	rctx.Result = res
-	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNPollOpt2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐPollOpt(ctx, field.Selections, res)
+	return ec.marshalNItem2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐItem(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_user(ctx context.Context, field graphql.CollectedField) graphql.Marshaler {
@@ -2823,10 +2463,10 @@ func (ec *executionContext) _User_about(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalOString2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_created(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -2841,7 +2481,7 @@ func (ec *executionContext) _User_created(ctx context.Context, field graphql.Col
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Created, nil
+		return ec.resolvers.User().Created(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2849,10 +2489,10 @@ func (ec *executionContext) _User_created(ctx context.Context, field graphql.Col
 		}
 		return graphql.Null
 	}
-	res := resTmp.(Timestamp)
+	res := resTmp.(*Timestamp)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNTimestamp2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐTimestamp(ctx, field.Selections, res)
+	return ec.marshalNTimestamp2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐTimestamp(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_karma(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -2872,10 +2512,10 @@ func (ec *executionContext) _User_karma(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_delay(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -2895,10 +2535,10 @@ func (ec *executionContext) _User_delay(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*int)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
+	return ec.marshalOInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_submitted(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -2913,7 +2553,7 @@ func (ec *executionContext) _User_submitted(ctx context.Context, field graphql.C
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Submitted, nil
+		return ec.resolvers.User().Submitted(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -4091,90 +3731,6 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				}
 				return res
 			})
-		case "story":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_story(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
-		case "comment":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_comment(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
-		case "ask":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_ask(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
-		case "job":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_job(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
-		case "poll":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_poll(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
-		case "pollopt":
-			field := field
-			out.Concurrently(i, func() (res graphql.Marshaler) {
-				defer func() {
-					if r := recover(); r != nil {
-						ec.Error(ctx, ec.Recover(ctx, r))
-					}
-				}()
-				res = ec._Query_pollopt(ctx, field)
-				if res == graphql.Null {
-					invalid = true
-				}
-				return res
-			})
 		case "user":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4429,19 +3985,37 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "about":
 			out.Values[i] = ec._User_about(ctx, field, obj)
 		case "created":
-			out.Values[i] = ec._User_created(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_created(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "karma":
 			out.Values[i] = ec._User_karma(ctx, field, obj)
 		case "delay":
 			out.Values[i] = ec._User_delay(ctx, field, obj)
 		case "submitted":
-			out.Values[i] = ec._User_submitted(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_submitted(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -4739,16 +4313,6 @@ func (ec *executionContext) marshalNAsk2ᚕgithubᚗcomᚋlouistsaitszhoᚋhacke
 	return ret
 }
 
-func (ec *executionContext) marshalNAsk2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐAsk(ctx context.Context, sel ast.SelectionSet, v *Ask) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Ask(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNBoolean2bool(ctx context.Context, v interface{}) (bool, error) {
 	return graphql.UnmarshalBoolean(v)
 }
@@ -4796,16 +4360,6 @@ func (ec *executionContext) marshalNComment2ᚕgithubᚗcomᚋlouistsaitszhoᚋh
 	}
 	wg.Wait()
 	return ret
-}
-
-func (ec *executionContext) marshalNComment2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐComment(ctx context.Context, sel ast.SelectionSet, v *Comment) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Comment(ctx, sel, v)
 }
 
 func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
@@ -4865,6 +4419,16 @@ func (ec *executionContext) marshalNItem2ᚕgithubᚗcomᚋlouistsaitszhoᚋhack
 	return ret
 }
 
+func (ec *executionContext) marshalNItem2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐItem(ctx context.Context, sel ast.SelectionSet, v *Item) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Item(ctx, sel, v)
+}
+
 func (ec *executionContext) marshalNJob2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v Job) graphql.Marshaler {
 	return ec._Job(ctx, sel, &v)
 }
@@ -4906,28 +4470,8 @@ func (ec *executionContext) marshalNJob2ᚕgithubᚗcomᚋlouistsaitszhoᚋhacke
 	return ret
 }
 
-func (ec *executionContext) marshalNJob2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐJob(ctx context.Context, sel ast.SelectionSet, v *Job) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Job(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNPoll2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐPoll(ctx context.Context, sel ast.SelectionSet, v Poll) graphql.Marshaler {
 	return ec._Poll(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNPoll2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐPoll(ctx context.Context, sel ast.SelectionSet, v *Poll) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Poll(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPollOpt2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐPollOpt(ctx context.Context, sel ast.SelectionSet, v PollOpt) graphql.Marshaler {
@@ -4971,16 +4515,6 @@ func (ec *executionContext) marshalNPollOpt2ᚕgithubᚗcomᚋlouistsaitszhoᚋh
 	return ret
 }
 
-func (ec *executionContext) marshalNPollOpt2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐPollOpt(ctx context.Context, sel ast.SelectionSet, v *PollOpt) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._PollOpt(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNStory2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐStory(ctx context.Context, sel ast.SelectionSet, v Story) graphql.Marshaler {
 	return ec._Story(ctx, sel, &v)
 }
@@ -5022,16 +4556,6 @@ func (ec *executionContext) marshalNStory2ᚕgithubᚗcomᚋlouistsaitszhoᚋhac
 	return ret
 }
 
-func (ec *executionContext) marshalNStory2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐStory(ctx context.Context, sel ast.SelectionSet, v *Story) graphql.Marshaler {
-	if v == nil {
-		if !ec.HasError(graphql.GetResolverContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._Story(ctx, sel, v)
-}
-
 func (ec *executionContext) unmarshalNString2string(ctx context.Context, v interface{}) (string, error) {
 	return graphql.UnmarshalString(v)
 }
@@ -5042,6 +4566,16 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 
 func (ec *executionContext) marshalNTimestamp2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐTimestamp(ctx context.Context, sel ast.SelectionSet, v Timestamp) graphql.Marshaler {
 	return ec._Timestamp(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTimestamp2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐTimestamp(ctx context.Context, sel ast.SelectionSet, v *Timestamp) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Timestamp(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNUser2githubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx context.Context, sel ast.SelectionSet, v User) graphql.Marshaler {
@@ -5338,21 +4872,6 @@ func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	return graphql.MarshalInt(v)
-}
-
-func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
-	if v == nil {
-		return nil, nil
-	}
-	res, err := ec.unmarshalOInt2int(ctx, v)
-	return &res, err
-}
-
-func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {
