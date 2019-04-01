@@ -2,6 +2,7 @@ package hackernewsgraphql
 
 import (
 	"context"
+	"strconv"
 ) // THIS CODE IS A STARTING POINT ONLY. IT WILL NOT BE UPDATED WITH SCHEMA CHANGES.
 
 type Resolver struct{}
@@ -16,7 +17,13 @@ func (r *Resolver) User() UserResolver {
 type queryResolver struct{ *Resolver }
 
 func (r *queryResolver) Item(ctx context.Context, id string) (*Item, error) {
-	panic("not implemented")
+	item, err := GetItem(strconv.Atoi(id))
+
+	if err != nil {
+		return nil, err
+	}
+
+	return item, nil
 }
 func (r *queryResolver) User(ctx context.Context, id string) (*User, error) {
 	panic("not implemented")
