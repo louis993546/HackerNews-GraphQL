@@ -140,25 +140,30 @@ type ComplexityRoot struct {
 }
 
 type AskResolver interface {
+	By(ctx context.Context, obj *Ask) (*User, error)
 	Time(ctx context.Context, obj *Ask) (*Timestamp, error)
 
 	Kids(ctx context.Context, obj *Ask) ([]Comment, error)
 }
 type CommentResolver interface {
+	By(ctx context.Context, obj *Comment) (*User, error)
 	Time(ctx context.Context, obj *Comment) (*Timestamp, error)
 	Kids(ctx context.Context, obj *Comment) ([]Comment, error)
 	Parent(ctx context.Context, obj *Comment) (Item, error)
 }
 type JobResolver interface {
+	By(ctx context.Context, obj *Job) (*User, error)
 	Time(ctx context.Context, obj *Job) (*Timestamp, error)
 }
 type PollResolver interface {
+	By(ctx context.Context, obj *Poll) (*User, error)
 	Time(ctx context.Context, obj *Poll) (*Timestamp, error)
 
 	Kids(ctx context.Context, obj *Poll) ([]Comment, error)
 	Parts(ctx context.Context, obj *Poll) ([]PollOpt, error)
 }
 type PollOptResolver interface {
+	By(ctx context.Context, obj *PollOpt) (*User, error)
 	Time(ctx context.Context, obj *PollOpt) (*Timestamp, error)
 	Poll(ctx context.Context, obj *PollOpt) (*Poll, error)
 }
@@ -175,13 +180,16 @@ type QueryResolver interface {
 	UpdatedProfiles(ctx context.Context) ([]User, error)
 }
 type StoryResolver interface {
+	By(ctx context.Context, obj *Story) (*User, error)
 	Time(ctx context.Context, obj *Story) (*Timestamp, error)
 
 	Kids(ctx context.Context, obj *Story) ([]Comment, error)
 }
 type UserResolver interface {
+	About(ctx context.Context, obj *User) (*string, error)
 	Created(ctx context.Context, obj *User) (*Timestamp, error)
-
+	Karma(ctx context.Context, obj *User) (*int, error)
+	Delay(ctx context.Context, obj *User) (*int, error)
 	Submitted(ctx context.Context, obj *User) ([]Item, error)
 }
 
@@ -737,15 +745,18 @@ var parsedSchema = gqlparser.MustLoadSchema(
     updatedProfiles: [User!]!
 }
 
+# TODO: how to embed byHandler back into by
 interface Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
 }
 
 type Story implements Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
     # end of Item
     descendants: Int!
@@ -757,7 +768,8 @@ type Story implements Item {
 
 type Comment implements Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
     # end of Item
     kids: [Comment!]!
@@ -767,7 +779,8 @@ type Comment implements Item {
 
 type Ask implements Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
     # end of Item
     descendants: Int!
@@ -780,7 +793,8 @@ type Ask implements Item {
 
 type Job implements Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
     # end of Item
     score: Int!
@@ -791,7 +805,8 @@ type Job implements Item {
 
 type Poll implements Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
     # end of Item
     descendants: Int!
@@ -804,7 +819,8 @@ type Poll implements Item {
 
 type PollOpt implements Item {
     id: ID!
-    by: String!
+    # byHandler: String!
+    by: User!
     time: Timestamp!
     # end of Item
     poll: Poll!
@@ -943,7 +959,7 @@ func (ec *executionContext) _Ask_by(ctx context.Context, field graphql.Collected
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.By, nil
+		return ec.resolvers.Ask().By(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -951,10 +967,10 @@ func (ec *executionContext) _Ask_by(ctx context.Context, field graphql.Collected
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Ask_time(ctx context.Context, field graphql.CollectedField, obj *Ask) graphql.Marshaler {
@@ -1177,7 +1193,7 @@ func (ec *executionContext) _Comment_by(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.By, nil
+		return ec.resolvers.Comment().By(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1185,10 +1201,10 @@ func (ec *executionContext) _Comment_by(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Comment_time(ctx context.Context, field graphql.CollectedField, obj *Comment) graphql.Marshaler {
@@ -1333,7 +1349,7 @@ func (ec *executionContext) _Job_by(ctx context.Context, field graphql.Collected
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.By, nil
+		return ec.resolvers.Job().By(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1341,10 +1357,10 @@ func (ec *executionContext) _Job_by(ctx context.Context, field graphql.Collected
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Job_time(ctx context.Context, field graphql.CollectedField, obj *Job) graphql.Marshaler {
@@ -1515,7 +1531,7 @@ func (ec *executionContext) _Poll_by(ctx context.Context, field graphql.Collecte
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.By, nil
+		return ec.resolvers.Poll().By(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1523,10 +1539,10 @@ func (ec *executionContext) _Poll_by(ctx context.Context, field graphql.Collecte
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Poll_time(ctx context.Context, field graphql.CollectedField, obj *Poll) graphql.Marshaler {
@@ -1749,7 +1765,7 @@ func (ec *executionContext) _PollOpt_by(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.By, nil
+		return ec.resolvers.PollOpt().By(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1757,10 +1773,10 @@ func (ec *executionContext) _PollOpt_by(ctx context.Context, field graphql.Colle
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PollOpt_time(ctx context.Context, field graphql.CollectedField, obj *PollOpt) graphql.Marshaler {
@@ -2232,7 +2248,7 @@ func (ec *executionContext) _Story_by(ctx context.Context, field graphql.Collect
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.By, nil
+		return ec.resolvers.Story().By(rctx, obj)
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -2240,10 +2256,10 @@ func (ec *executionContext) _Story_by(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*User)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhackernewsgraphqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Story_time(ctx context.Context, field graphql.CollectedField, obj *Story) graphql.Marshaler {
@@ -2492,15 +2508,15 @@ func (ec *executionContext) _User_about(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.About, nil
+		return ec.resolvers.User().About(rctx, obj)
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(*string)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOString2string(ctx, field.Selections, res)
+	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_created(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -2541,15 +2557,15 @@ func (ec *executionContext) _User_karma(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Karma, nil
+		return ec.resolvers.User().Karma(rctx, obj)
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_delay(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -2564,15 +2580,15 @@ func (ec *executionContext) _User_delay(ctx context.Context, field graphql.Colle
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Delay, nil
+		return ec.resolvers.User().Delay(rctx, obj)
 	})
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(int)
+	res := resTmp.(*int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalOInt2int(ctx, field.Selections, res)
+	return ec.marshalOInt2ᚖint(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_submitted(ctx context.Context, field graphql.CollectedField, obj *User) graphql.Marshaler {
@@ -3458,10 +3474,19 @@ func (ec *executionContext) _Ask(ctx context.Context, sel ast.SelectionSet, obj 
 				invalid = true
 			}
 		case "by":
-			out.Values[i] = ec._Ask_by(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Ask_by(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "time":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3543,10 +3568,19 @@ func (ec *executionContext) _Comment(ctx context.Context, sel ast.SelectionSet, 
 				invalid = true
 			}
 		case "by":
-			out.Values[i] = ec._Comment_by(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Comment_by(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "time":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3622,10 +3656,19 @@ func (ec *executionContext) _Job(ctx context.Context, sel ast.SelectionSet, obj 
 				invalid = true
 			}
 		case "by":
-			out.Values[i] = ec._Job_by(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Job_by(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "time":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3688,10 +3731,19 @@ func (ec *executionContext) _Poll(ctx context.Context, sel ast.SelectionSet, obj
 				invalid = true
 			}
 		case "by":
-			out.Values[i] = ec._Poll_by(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Poll_by(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "time":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -3782,10 +3834,19 @@ func (ec *executionContext) _PollOpt(ctx context.Context, sel ast.SelectionSet, 
 				invalid = true
 			}
 		case "by":
-			out.Values[i] = ec._PollOpt_by(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._PollOpt_by(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "time":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4022,10 +4083,19 @@ func (ec *executionContext) _Story(ctx context.Context, sel ast.SelectionSet, ob
 				invalid = true
 			}
 		case "by":
-			out.Values[i] = ec._Story_by(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalid = true
-			}
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Story_by(ctx, field, obj)
+				if res == graphql.Null {
+					invalid = true
+				}
+				return res
+			})
 		case "time":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4134,7 +4204,16 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				invalid = true
 			}
 		case "about":
-			out.Values[i] = ec._User_about(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_about(ctx, field, obj)
+				return res
+			})
 		case "created":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -4150,9 +4229,27 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 				return res
 			})
 		case "karma":
-			out.Values[i] = ec._User_karma(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_karma(ctx, field, obj)
+				return res
+			})
 		case "delay":
-			out.Values[i] = ec._User_delay(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_delay(ctx, field, obj)
+				return res
+			})
 		case "submitted":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -5031,6 +5128,21 @@ func (ec *executionContext) unmarshalOInt2int(ctx context.Context, v interface{}
 
 func (ec *executionContext) marshalOInt2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
 	return graphql.MarshalInt(v)
+}
+
+func (ec *executionContext) unmarshalOInt2ᚖint(ctx context.Context, v interface{}) (*int, error) {
+	if v == nil {
+		return nil, nil
+	}
+	res, err := ec.unmarshalOInt2int(ctx, v)
+	return &res, err
+}
+
+func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.SelectionSet, v *int) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec.marshalOInt2int(ctx, sel, *v)
 }
 
 func (ec *executionContext) unmarshalOString2string(ctx context.Context, v interface{}) (string, error) {

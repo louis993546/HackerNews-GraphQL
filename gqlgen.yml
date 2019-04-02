@@ -15,8 +15,6 @@ resolver:
 models:
   Item:
     model: github.com/louistsaitszho/hackernewsgraphql.Item
-  User:
-    model: github.com/louistsaitszho/hackernewsgraphql.User
   Story:
     model: github.com/louistsaitszho/hackernewsgraphql.Story
   Comment:
@@ -29,3 +27,5 @@ models:
     model: github.com/louistsaitszho/hackernewsgraphql.Poll
   PollOpt:
     model: github.com/louistsaitszho/hackernewsgraphql.PollOpt
+  User:
+    model: github.com/louistsaitszho/hackernewsgraphql.User

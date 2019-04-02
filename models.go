@@ -124,11 +124,15 @@ func (po PollOpt) getType() string { return "pollopt" }
 func (po PollOpt) getTime() int    { return po.Time }
 
 // User is exactly what it is
+// type User struct {
+// 	About     string `json:"about"`
+// 	Created   int    `json:"created"`
+// 	Delay     int    `json:"delay"`
+// 	ID        string `json:"id"`
+// 	Karma     int    `json:"karma"`
+// 	Submitted []int  `json:"submitted"`
+// }
+
 type User struct {
-	About     string `json:"about"`
-	Created   int    `json:"created"`
-	Delay     int    `json:"delay"`
-	ID        string `json:"id"`
-	Karma     int    `json:"karma"`
-	Submitted []int  `json:"submitted"`
+	ID string `json: "id"`
 }

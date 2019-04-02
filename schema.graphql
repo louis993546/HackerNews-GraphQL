@@ -22,13 +22,13 @@ type Query {
 
 interface Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
 }
 
 type Story implements Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
     # end of Item
     descendants: Int!
@@ -40,7 +40,7 @@ type Story implements Item {
 
 type Comment implements Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
     # end of Item
     kids: [Comment!]!
@@ -50,7 +50,7 @@ type Comment implements Item {
 
 type Ask implements Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
     # end of Item
     descendants: Int!
@@ -63,7 +63,7 @@ type Ask implements Item {
 
 type Job implements Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
     # end of Item
     score: Int!
@@ -74,7 +74,7 @@ type Job implements Item {
 
 type Poll implements Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
     # end of Item
     descendants: Int!
@@ -87,7 +87,7 @@ type Poll implements Item {
 
 type PollOpt implements Item {
     id: ID!
-    by: String!
+    by: User!
     time: Timestamp!
     # end of Item
     poll: Poll!
