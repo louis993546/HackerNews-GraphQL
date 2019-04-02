@@ -17,3 +17,15 @@ models:
     model: github.com/louistsaitszho/hackernewsgraphql.Item
   User:
     model: github.com/louistsaitszho/hackernewsgraphql.User
+  Story:
+    model: github.com/louistsaitszho/hackernewsgraphql.Story
+  Comment:
+    model: github.com/louistsaitszho/hackernewsgraphql.Comment
+  Ask:
+    model: github.com/louistsaitszho/hackernewsgraphql.Ask
+  Job:
+    model: github.com/louistsaitszho/hackernewsgraphql.Job
+  Poll:
+    model: github.com/louistsaitszho/hackernewsgraphql.Poll
+  PollOpt:
+    model: github.com/louistsaitszho/hackernewsgraphql.PollOpt
