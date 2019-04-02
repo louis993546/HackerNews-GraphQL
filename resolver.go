@@ -38,7 +38,8 @@ func (r *askResolver) By(ctx context.Context, obj *Ask) (*User, error) {
 	panic("not implemented")
 }
 func (r *askResolver) Time(ctx context.Context, obj *Ask) (*Timestamp, error) {
-	panic("not implemented")
+	timestamp := makeTimestamp(obj.Time)
+	return &timestamp, nil
 }
 func (r *askResolver) Kids(ctx context.Context, obj *Ask) ([]Comment, error) {
 	panic("not implemented")
@@ -50,7 +51,8 @@ func (r *commentResolver) By(ctx context.Context, obj *Comment) (*User, error) {
 	panic("not implemented")
 }
 func (r *commentResolver) Time(ctx context.Context, obj *Comment) (*Timestamp, error) {
-	panic("not implemented")
+	timestamp := makeTimestamp(obj.Time)
+	return &timestamp, nil
 }
 func (r *commentResolver) Kids(ctx context.Context, obj *Comment) ([]Comment, error) {
 	panic("not implemented")
@@ -65,7 +67,8 @@ func (r *jobResolver) By(ctx context.Context, obj *Job) (*User, error) {
 	panic("not implemented")
 }
 func (r *jobResolver) Time(ctx context.Context, obj *Job) (*Timestamp, error) {
-	panic("not implemented")
+	timestamp := makeTimestamp(obj.Time)
+	return &timestamp, nil
 }
 
 type pollResolver struct{ *Resolver }
@@ -74,7 +77,8 @@ func (r *pollResolver) By(ctx context.Context, obj *Poll) (*User, error) {
 	panic("not implemented")
 }
 func (r *pollResolver) Time(ctx context.Context, obj *Poll) (*Timestamp, error) {
-	panic("not implemented")
+	timestamp := makeTimestamp(obj.Time)
+	return &timestamp, nil
 }
 func (r *pollResolver) Kids(ctx context.Context, obj *Poll) ([]Comment, error) {
 	panic("not implemented")
@@ -89,7 +93,8 @@ func (r *pollOptResolver) By(ctx context.Context, obj *PollOpt) (*User, error) {
 	panic("not implemented")
 }
 func (r *pollOptResolver) Time(ctx context.Context, obj *PollOpt) (*Timestamp, error) {
-	panic("not implemented")
+	timestamp := makeTimestamp(obj.Time)
+	return &timestamp, nil
 }
 func (r *pollOptResolver) Poll(ctx context.Context, obj *PollOpt) (*Poll, error) {
 	panic("not implemented")
