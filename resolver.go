@@ -136,7 +136,8 @@ func (r *storyResolver) By(ctx context.Context, obj *Story) (*User, error) {
 	return &User{ID: obj.By}, nil
 }
 func (r *storyResolver) Time(ctx context.Context, obj *Story) (*Timestamp, error) {
-	panic("not implemented")
+	timestamp := makeTimestamp(obj.Time)
+	return &timestamp, nil
 }
 func (r *storyResolver) Kids(ctx context.Context, obj *Story) ([]Comment, error) {
 	panic("not implemented")
