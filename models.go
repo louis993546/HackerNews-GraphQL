@@ -8,33 +8,12 @@ type Item interface {
 	getTime() int
 }
 
-// AllItems is essentially a wrapper struct to handle the json parsing. Note
-// that this does NOT implement Item on purpose, because it forces the adapters
-// to make sure it can return a valid types of items with all the field with
-// value. i.e. If the type is story, you can be 100% sure it has title, url,
-// descendants, etc., or an error all-together.
-type AllItems struct {
-	By          string  `json:"by"`
-	ID          int     `json:"id"`
-	Type        string  `json:"type"`
-	Time        int     `json:"time"`
-	Descendants *int    `json:"descendants"`
-	Kids        *[]int  `json:"kids"`
-	Score       *int    `json:"score"`
-	Title       *string `json:"title"`
-	URL         *string `json:"url"`
-	Parent      *int    `json:"parent"`
-	Text        *string `json:"text"`
-	Parts       *[]int  `json:"parts"`
-	Poll        *int    `json:"poll"`
-}
-
 // Story here implements Item, so that it can be a valid return type of GetItem
 type Story struct {
 	By          string `json:"by"`
 	Descendants int    `json:"descendants"`
 	ID          int    `json:"id"`
-	Kids        []int  `json:"kids"`
+	Kids        []int  `json:"kids"`		//TODO: turn this into []Comment
 	Score       int    `json:"score"`
 	Time        int    `json:"time"`
 	Title       string `json:"title"`
