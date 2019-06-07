@@ -1,4 +1,4 @@
-package hn_gql
+package hngql
 
 import (
 	"context"

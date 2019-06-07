@@ -1,4 +1,4 @@
-module github.com/louistsaitszho/hn-gql
+module github.com/louistsaitszho/hngql
 
 go 1.12
 
