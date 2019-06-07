@@ -3,7 +3,7 @@
 package hn_gql
 
 type Story struct {
-	ID           string `json:"id"`
+	ID           int    `json:"id"`
 	Score        int    `json:"score"`
 	URL          string `json:"url"`
 	Title        string `json:"title"`

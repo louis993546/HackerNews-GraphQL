@@ -12,6 +12,6 @@ func (r *Resolver) Query() QueryResolver {
 
 type queryResolver struct{ *Resolver }
 
-func (r *queryResolver) Story(ctx context.Context, id string) (*Story, error) {
+func (r *queryResolver) Story(ctx context.Context, id int) (*Story, error) {
 	panic("not implemented")
 }

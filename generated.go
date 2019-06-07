@@ -42,7 +42,7 @@ type DirectiveRoot struct {
 
 type ComplexityRoot struct {
 	Query struct {
-		Story func(childComplexity int, id string) int
+		Story func(childComplexity int, id int) int
 	}
 
 	Story struct {
@@ -55,7 +55,7 @@ type ComplexityRoot struct {
 }
 
 type QueryResolver interface {
-	Story(ctx context.Context, id string) (*Story, error)
+	Story(ctx context.Context, id int) (*Story, error)
 }
 
 type executableSchema struct {
@@ -83,7 +83,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.Story(childComplexity, args["id"].(string)), true
+		return e.complexity.Query.Story(childComplexity, args["id"].(int)), true
 
 	case "Story.commentCount":
 		if e.complexity.Story.CommentCount == nil {
@@ -221,9 +221,9 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 func (ec *executionContext) field_Query_story_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
+	var arg0 int
 	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2int(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -284,7 +284,7 @@ func (ec *executionContext) _Query_story(ctx context.Context, field graphql.Coll
 	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
 	resTmp := ec.FieldMiddleware(ctx, nil, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Story(rctx, args["id"].(string))
+		return ec.resolvers.Query().Story(rctx, args["id"].(int))
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -374,10 +374,10 @@ func (ec *executionContext) _Story_id(ctx context.Context, field graphql.Collect
 		}
 		return graphql.Null
 	}
-	res := resTmp.(string)
+	res := resTmp.(int)
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
-	return ec.marshalNID2string(ctx, field.Selections, res)
+	return ec.marshalNID2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Story_score(ctx context.Context, field graphql.CollectedField, obj *Story) graphql.Marshaler {
@@ -1677,12 +1677,12 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
-func (ec *executionContext) unmarshalNID2string(ctx context.Context, v interface{}) (string, error) {
-	return graphql.UnmarshalID(v)
+func (ec *executionContext) unmarshalNID2int(ctx context.Context, v interface{}) (int, error) {
+	return graphql.UnmarshalIntID(v)
 }
 
-func (ec *executionContext) marshalNID2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
-	res := graphql.MarshalID(v)
+func (ec *executionContext) marshalNID2int(ctx context.Context, sel ast.SelectionSet, v int) graphql.Marshaler {
+	res := graphql.MarshalIntID(v)
 	if res == graphql.Null {
 		if !ec.HasError(graphql.GetResolverContext(ctx)) {
 			ec.Errorf(ctx, "must not be null")
