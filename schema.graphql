@@ -1,0 +1,14 @@
+type Story {
+    id: ID!
+    # by: User!
+    score: Int!
+    url: String!
+    title: String!
+    # time: Time!
+    # comments: [Comment!]!
+    commentCount: Int!
+}
+
+type Query {
+    story(id: ID!): Story!
+}
