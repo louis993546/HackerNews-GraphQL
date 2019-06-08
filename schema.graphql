@@ -1,110 +1,30 @@
-type Query {
-    item(id: ID!): Item!
-    # story(id: ID!): Story!
-    # comment(id: ID!): Comment!
-    # ask(id: ID!): Ask!
-    # job(id: ID!): Job!
-    # poll(id: ID!): Poll!
-    # pollopt(id: ID!): PollOpt!
-    user(id: String!): User!
-
-    topStories: [Story!]!
-    newStories: [Story!]!
-    bestStories: [Story!]!
-
-    askStories: [Ask!]!
-    showStories: [Story!]!  # TODO: not very sure about this
-    jobStories: [Job!]!
-
-    updatedItems: [Item!]!
-    updatedProfiles: [User!]!
-}
-
-interface Item {
+type Story {
     id: ID!
     by: User!
-    time: Timestamp!
-}
-
-type Story implements Item {
-    id: ID!
-    by: User!
-    time: Timestamp!
-    # end of Item
-    descendants: Int!
-    kids: [Comment!]!
     score: Int!
-    title: String!
     url: String!
-}
-
-type Comment implements Item {
-    id: ID!
-    by: User!
-    time: Timestamp!
-    # end of Item
-    kids: [Comment!]!
-    parent: Item!
-    text: String!
-}
-
-type Ask implements Item {
-    id: ID!
-    by: User!
-    time: Timestamp!
-    # end of Item
-    descendants: Int!
-    kids: [Comment!]!
-    score: Int!
-    text: String!   # TODO: specify this is html?
     title: String!
-    url: String!
+    time: Timestamp!
+    # comments: [Comment!]!
+    commentCount: Int!
 }
 
-type Job implements Item {
-    id: ID!
-    by: User!
-    time: Timestamp!
-    # end of Item
-    score: Int!
-    text: String!
-    title: String!
-    url: String!
-}
+scalar Time
 
-type Poll implements Item {
-    id: ID!
-    by: User!
-    time: Timestamp!
-    # end of Item
-    descendants: Int!
-    kids: [Comment!]!
-    parts: [PollOpt!]!
-    score: Int!
-    text: String!
-    title: String!
-}
-
-type PollOpt implements Item {
-    id: ID!
-    by: User!
-    time: Timestamp!
-    # end of Item
-    poll: Poll!
-    score: Int!
-    text: String!
+type Timestamp {
+    iso8601: Time!
+    unixTime: Int!
 }
 
 type User {
-    id: ID!
-    about: String
-    created: Timestamp!
-    karma: Int
-    delay: Int
-    submitted: [Item!]!
+    id: String! # this can't be the normal ID because gqlgen can't tell this one is string, not int
+    about: String!
+    karma: Int!
+    createdAt: Timestamp!
+    # delay
+    # submitted: [Item!]!
 }
 
-type Timestamp {
-    epoch: Int!
-    iso8601: String!
+type Query {
+    story(id: ID!): Story!
 }

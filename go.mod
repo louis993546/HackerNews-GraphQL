@@ -1,8 +1,8 @@
-module github.com/louistsaitszho/hackernewsgraphql
+module github.com/louistsaitszho/hngql
 
 go 1.12
 
 require (
-	github.com/99designs/gqlgen v0.8.1
-	github.com/vektah/gqlparser v1.1.0
+	github.com/99designs/gqlgen v0.9.0
+	github.com/vektah/gqlparser v1.1.2
 )

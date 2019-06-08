@@ -10,22 +10,13 @@ exec:
 model:
   filename: models_gen.go
 resolver:
-  filename: resolver.go
+  filename: resolver/resolver.go
   type: Resolver
 models:
-  Item:
-    model: github.com/louistsaitszho/hackernewsgraphql.Item
+  ID:
+    model:
+      - github.com/99designs/gqlgen/graphql.IntID
   Story:
-    model: github.com/louistsaitszho/hackernewsgraphql.Story
-  Comment:
-    model: github.com/louistsaitszho/hackernewsgraphql.Comment
-  Ask:
-    model: github.com/louistsaitszho/hackernewsgraphql.Ask
-  Job:
-    model: github.com/louistsaitszho/hackernewsgraphql.Job
-  Poll:
-    model: github.com/louistsaitszho/hackernewsgraphql.Poll
-  PollOpt:
-    model: github.com/louistsaitszho/hackernewsgraphql.PollOpt
-  User:
-    model: github.com/louistsaitszho/hackernewsgraphql.User
+    fields:
+      by:
+        resolver: true
