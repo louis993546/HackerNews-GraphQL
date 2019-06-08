@@ -9,6 +9,7 @@ import (
 	"strconv"
 	"sync"
 	"sync/atomic"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/introspection"
@@ -49,8 +50,14 @@ type ComplexityRoot struct {
 		CommentCount func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Score        func(childComplexity int) int
+		Time         func(childComplexity int) int
 		Title        func(childComplexity int) int
 		URL          func(childComplexity int) int
+	}
+
+	Timestamp struct {
+		Iso8601  func(childComplexity int) int
+		UnixTime func(childComplexity int) int
 	}
 }
 
@@ -106,6 +113,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Story.Score(childComplexity), true
 
+	case "Story.time":
+		if e.complexity.Story.Time == nil {
+			break
+		}
+
+		return e.complexity.Story.Time(childComplexity), true
+
 	case "Story.title":
 		if e.complexity.Story.Title == nil {
 			break
@@ -119,6 +133,20 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Story.URL(childComplexity), true
+
+	case "Timestamp.iso8601":
+		if e.complexity.Timestamp.Iso8601 == nil {
+			break
+		}
+
+		return e.complexity.Timestamp.Iso8601(childComplexity), true
+
+	case "Timestamp.unixTime":
+		if e.complexity.Timestamp.UnixTime == nil {
+			break
+		}
+
+		return e.complexity.Timestamp.UnixTime(childComplexity), true
 
 	}
 	return 0, false
@@ -190,9 +218,16 @@ var parsedSchema = gqlparser.MustLoadSchema(
     score: Int!
     url: String!
     title: String!
-    # time: Time!
+    time: Timestamp!
     # comments: [Comment!]!
     commentCount: Int!
+}
+
+scalar Time
+
+type Timestamp {
+    iso8601: Time!
+    unixTime: Int!
 }
 
 type Query {
@@ -461,6 +496,33 @@ func (ec *executionContext) _Story_title(ctx context.Context, field graphql.Coll
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Story_time(ctx context.Context, field graphql.CollectedField, obj *Story) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Story",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Time, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*Timestamp)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTimestamp2ᚖgithubᚗcomᚋlouistsaitszhoᚋhngqlᚐTimestamp(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Story_commentCount(ctx context.Context, field graphql.CollectedField, obj *Story) graphql.Marshaler {
 	ctx = ec.Tracer.StartFieldExecution(ctx, field)
 	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
@@ -475,6 +537,60 @@ func (ec *executionContext) _Story_commentCount(ctx context.Context, field graph
 	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
 		return obj.CommentCount, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Timestamp_iso8601(ctx context.Context, field graphql.CollectedField, obj *Timestamp) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Timestamp",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Iso8601, nil
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(time.Time)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNTime2timeᚐTime(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Timestamp_unixTime(ctx context.Context, field graphql.CollectedField, obj *Timestamp) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Timestamp",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.UnixTime, nil
 	})
 	if resTmp == nil {
 		if !ec.HasError(rctx) {
@@ -1402,8 +1518,45 @@ func (ec *executionContext) _Story(ctx context.Context, sel ast.SelectionSet, ob
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "time":
+			out.Values[i] = ec._Story_time(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "commentCount":
 			out.Values[i] = ec._Story_commentCount(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var timestampImplementors = []string{"Timestamp"}
+
+func (ec *executionContext) _Timestamp(ctx context.Context, sel ast.SelectionSet, obj *Timestamp) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.RequestContext, sel, timestampImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("Timestamp")
+		case "iso8601":
+			out.Values[i] = ec._Timestamp_iso8601(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "unixTime":
+			out.Values[i] = ec._Timestamp_unixTime(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -1731,6 +1884,34 @@ func (ec *executionContext) marshalNString2string(ctx context.Context, sel ast.S
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) unmarshalNTime2timeᚐTime(ctx context.Context, v interface{}) (time.Time, error) {
+	return graphql.UnmarshalTime(v)
+}
+
+func (ec *executionContext) marshalNTime2timeᚐTime(ctx context.Context, sel ast.SelectionSet, v time.Time) graphql.Marshaler {
+	res := graphql.MarshalTime(v)
+	if res == graphql.Null {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
+func (ec *executionContext) marshalNTimestamp2githubᚗcomᚋlouistsaitszhoᚋhngqlᚐTimestamp(ctx context.Context, sel ast.SelectionSet, v Timestamp) graphql.Marshaler {
+	return ec._Timestamp(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNTimestamp2ᚖgithubᚗcomᚋlouistsaitszhoᚋhngqlᚐTimestamp(ctx context.Context, sel ast.SelectionSet, v *Timestamp) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._Timestamp(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {

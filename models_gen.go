@@ -2,10 +2,20 @@
 
 package hngql
 
+import (
+	"time"
+)
+
 type Story struct {
-	ID           int    `json:"id"`
-	Score        int    `json:"score"`
-	URL          string `json:"url"`
-	Title        string `json:"title"`
-	CommentCount int    `json:"commentCount"`
+	ID           int        `json:"id"`
+	Score        int        `json:"score"`
+	URL          string     `json:"url"`
+	Title        string     `json:"title"`
+	Time         *Timestamp `json:"time"`
+	CommentCount int        `json:"commentCount"`
+}
+
+type Timestamp struct {
+	Iso8601  time.Time `json:"iso8601"`
+	UnixTime int       `json:"unixTime"`
 }

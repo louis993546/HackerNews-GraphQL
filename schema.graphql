@@ -4,9 +4,16 @@ type Story {
     score: Int!
     url: String!
     title: String!
-    # time: Time!
+    time: Timestamp!
     # comments: [Comment!]!
     commentCount: Int!
+}
+
+scalar Time
+
+type Timestamp {
+    iso8601: Time!
+    unixTime: Int!
 }
 
 type Query {
