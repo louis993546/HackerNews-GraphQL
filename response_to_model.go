@@ -1,7 +1,11 @@
 package hngql
 
+import (
+	"github.com/louistsaitszho/hngql/rest"
+)
+
 // TODO return (*Story, error) instead
-func fromStoryResponseToStory(storyRes storyResponse) Story {
+func FromStoryResponseToStory(storyRes rest.StoryResponse) Story {
 	return Story {
 		ID: storyRes.ID,
 		Score: storyRes.Score,

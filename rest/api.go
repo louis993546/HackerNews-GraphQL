@@ -1,4 +1,4 @@
-package hngql
+package rest
 
 import (
 	"encoding/json"
@@ -9,19 +9,7 @@ import (
 // TODO need to figure out how to best construct this funciton
 // func getItem(id int) Item { }
 
-type storyResponse struct {
-	By          string `json:"by"`
-	Descendants int    `json:"descendants"`
-	ID          int    `json:"id"`
-	Kids        []int  `json:"kids"`
-	Score       int    `json:"score"`
-	Time        int    `json:"time"`
-	Title       string `json:"title"`
-	Type        string `json:"type"`
-	URL         string `json:"url"`
-}
-
-func getStory(id int) (*storyResponse, error) {
+func GetStory(id int) (*StoryResponse, error) {
 	url := fmt.Sprintf("https://hacker-news.firebaseio.com/v0/item/%d.json", id)
 	req, err := http.NewRequest("GET", url, nil)
 	if err != nil {
@@ -33,7 +21,7 @@ func getStory(id int) (*storyResponse, error) {
 		return nil, err
 	}
 	defer resp.Body.Close()
-	var storyRes storyResponse
+	var storyRes StoryResponse
 	if err := json.NewDecoder(resp.Body).Decode(&storyRes); err != nil {
 		return nil, err
 	}
