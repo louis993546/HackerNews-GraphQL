@@ -1,6 +1,6 @@
 type Story {
     id: ID!
-    # by: User!
+    by: User!
     score: Int!
     url: String!
     title: String!
@@ -14,6 +14,15 @@ scalar Time
 type Timestamp {
     iso8601: Time!
     unixTime: Int!
+}
+
+type User {
+    id: String! # this can't be the normal ID because gqlgen can't tell this one is string, not int
+    about: String!
+    karma: Int!
+    createdAt: Timestamp!
+    # delay
+    # submitted: [Item!]!
 }
 
 type Query {

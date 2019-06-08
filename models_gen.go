@@ -19,3 +19,10 @@ type Timestamp struct {
 	Iso8601  time.Time `json:"iso8601"`
 	UnixTime int       `json:"unixTime"`
 }
+
+type User struct {
+	ID        string     `json:"id"`
+	About     string     `json:"about"`
+	Karma     int        `json:"karma"`
+	CreatedAt *Timestamp `json:"createdAt"`
+}
