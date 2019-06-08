@@ -13,6 +13,10 @@ resolver:
   filename: resolver/resolver.go
   type: Resolver
 models:
-  ID: # The GraphQL type ID is backed by
+  ID:
     model:
       - github.com/99designs/gqlgen/graphql.IntID
+  Story:
+    fields:
+      by:
+        resolver: true

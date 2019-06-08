@@ -8,6 +8,7 @@ import (
 
 type Story struct {
 	ID           int        `json:"id"`
+	By           *User      `json:"by"`
 	Score        int        `json:"score"`
 	URL          string     `json:"url"`
 	Title        string     `json:"title"`

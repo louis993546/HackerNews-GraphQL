@@ -36,6 +36,7 @@ type Config struct {
 
 type ResolverRoot interface {
 	Query() QueryResolver
+	Story() StoryResolver
 }
 
 type DirectiveRoot struct {
@@ -47,6 +48,7 @@ type ComplexityRoot struct {
 	}
 
 	Story struct {
+		By           func(childComplexity int) int
 		CommentCount func(childComplexity int) int
 		ID           func(childComplexity int) int
 		Score        func(childComplexity int) int
@@ -70,6 +72,9 @@ type ComplexityRoot struct {
 
 type QueryResolver interface {
 	Story(ctx context.Context, id int) (*Story, error)
+}
+type StoryResolver interface {
+	By(ctx context.Context, obj *Story) (*User, error)
 }
 
 type executableSchema struct {
@@ -98,6 +103,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Story(childComplexity, args["id"].(int)), true
+
+	case "Story.by":
+		if e.complexity.Story.By == nil {
+			break
+		}
+
+		return e.complexity.Story.By(childComplexity), true
 
 	case "Story.commentCount":
 		if e.complexity.Story.CommentCount == nil {
@@ -249,7 +261,7 @@ func (ec *executionContext) introspectType(name string) (*introspection.Type, er
 var parsedSchema = gqlparser.MustLoadSchema(
 	&ast.Source{Name: "schema.graphql", Input: `type Story {
     id: ID!
-    # by: User!
+    by: User!
     score: Int!
     url: String!
     title: String!
@@ -457,6 +469,33 @@ func (ec *executionContext) _Story_id(ctx context.Context, field graphql.Collect
 	rctx.Result = res
 	ctx = ec.Tracer.StartFieldChildExecution(ctx)
 	return ec.marshalNID2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Story_by(ctx context.Context, field graphql.CollectedField, obj *Story) graphql.Marshaler {
+	ctx = ec.Tracer.StartFieldExecution(ctx, field)
+	defer func() { ec.Tracer.EndFieldExecution(ctx) }()
+	rctx := &graphql.ResolverContext{
+		Object:   "Story",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+	ctx = graphql.WithResolverContext(ctx, rctx)
+	ctx = ec.Tracer.StartFieldResolverExecution(ctx, rctx)
+	resTmp := ec.FieldMiddleware(ctx, obj, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Story().By(rctx, obj)
+	})
+	if resTmp == nil {
+		if !ec.HasError(rctx) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*User)
+	rctx.Result = res
+	ctx = ec.Tracer.StartFieldChildExecution(ctx)
+	return ec.marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhngqlᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Story_score(ctx context.Context, field graphql.CollectedField, obj *Story) graphql.Marshaler {
@@ -1653,32 +1692,46 @@ func (ec *executionContext) _Story(ctx context.Context, sel ast.SelectionSet, ob
 		case "id":
 			out.Values[i] = ec._Story_id(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
+		case "by":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Story_by(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
 		case "score":
 			out.Values[i] = ec._Story_score(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "url":
 			out.Values[i] = ec._Story_url(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "title":
 			out.Values[i] = ec._Story_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "time":
 			out.Values[i] = ec._Story_time(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		case "commentCount":
 			out.Values[i] = ec._Story_commentCount(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
-				invalids++
+				atomic.AddUint32(&invalids, 1)
 			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
@@ -2106,6 +2159,20 @@ func (ec *executionContext) marshalNTimestamp2ᚖgithubᚗcomᚋlouistsaitszho�
 		return graphql.Null
 	}
 	return ec._Timestamp(ctx, sel, v)
+}
+
+func (ec *executionContext) marshalNUser2githubᚗcomᚋlouistsaitszhoᚋhngqlᚐUser(ctx context.Context, sel ast.SelectionSet, v User) graphql.Marshaler {
+	return ec._User(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNUser2ᚖgithubᚗcomᚋlouistsaitszhoᚋhngqlᚐUser(ctx context.Context, sel ast.SelectionSet, v *User) graphql.Marshaler {
+	if v == nil {
+		if !ec.HasError(graphql.GetResolverContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._User(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalN__Directive2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚋintrospectionᚐDirective(ctx context.Context, sel ast.SelectionSet, v introspection.Directive) graphql.Marshaler {
