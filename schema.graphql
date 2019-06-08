@@ -5,7 +5,7 @@ type Story {
     url: String!
     title: String!
     time: Timestamp!
-    # comments: [Comment!]!
+    comments: [Comment!]!
     commentCount: Int!
 }
 
@@ -22,8 +22,16 @@ type User {
     karma: Int!
     createdAt: Timestamp!
     # delay
-    # submitted: [Item!]!
+    submitted: [Item!]!
 }
+
+type Comment {
+    id: ID!
+    by: User!
+    time: Timestamp!
+}
+
+union Item = Story | Comment
 
 type Query {
     story(id: ID!): Story!
