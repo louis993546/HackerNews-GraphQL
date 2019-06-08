@@ -20,3 +20,7 @@ models:
     fields:
       by:
         resolver: true
+  User:
+    fields:
+      submitted:
+        resolver: true

@@ -16,6 +16,9 @@ func (r *Resolver) Query() hngql.QueryResolver {
 func (r *Resolver) Story() hngql.StoryResolver {
 	return &storyResolver{r}
 }
+func (r *Resolver) User() hngql.UserResolver {
+	return &userResolver{r}
+}
 
 type queryResolver struct{ *Resolver }
 
@@ -27,4 +30,10 @@ type storyResolver struct{ *Resolver }
 
 func (r *storyResolver) By(ctx context.Context, obj *hngql.Story) (*hngql.User, error) {
 	return resolveUserByStory(*obj)
+}
+
+type userResolver struct{ *Resolver }
+
+func (r *userResolver) Submitted(ctx context.Context, obj *hngql.User) ([]hngql.Item, error) {
+	panic("not implemented")
 }

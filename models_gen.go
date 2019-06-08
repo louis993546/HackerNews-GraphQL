@@ -6,6 +6,18 @@ import (
 	"time"
 )
 
+type Item interface {
+	IsItem()
+}
+
+type Comment struct {
+	ID   int        `json:"id"`
+	By   *User      `json:"by"`
+	Time *Timestamp `json:"time"`
+}
+
+func (Comment) IsItem() {}
+
 type Story struct {
 	ID           int        `json:"id"`
 	By           *User      `json:"by"`
@@ -13,8 +25,11 @@ type Story struct {
 	URL          string     `json:"url"`
 	Title        string     `json:"title"`
 	Time         *Timestamp `json:"time"`
+	Comments     []*Comment `json:"comments"`
 	CommentCount int        `json:"commentCount"`
 }
+
+func (Story) IsItem() {}
 
 type Timestamp struct {
 	Iso8601  time.Time `json:"iso8601"`
@@ -26,4 +41,5 @@ type User struct {
 	About     string     `json:"about"`
 	Karma     int        `json:"karma"`
 	CreatedAt *Timestamp `json:"createdAt"`
+	Submitted []Item     `json:"submitted"`
 }
