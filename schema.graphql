@@ -31,7 +31,23 @@ type Comment {
     time: Timestamp!
 }
 
-union Item = Story | Comment
+type UnknownItem {
+    by: String!
+    id: ID!
+    type: String!
+    time: Int!
+    descendants: Int
+    kids: [Int!]
+    score: Int
+    title: String
+    url: String
+    parent: Int
+    text: String
+    parts: [Int]
+    poll: Int
+}
+
+union Item = Story | Comment | UnknownItem
 
 type Query {
     story(id: ID!): Story!

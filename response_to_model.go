@@ -1,7 +1,6 @@
 package hngql
 
 import (
-	"fmt"
 	"github.com/louistsaitszho/hngql/rest"
 	"strconv"
 	"time"
@@ -57,20 +56,48 @@ func mapIntToItem(vs []int, f func(int) Item) []Item {
 	return vsm
 }
 
-func FromItemResponseToItem(itemRes rest.ItemResponse) Item {
-	switch itemRes.Type {
-	case "story":
-		fmt.Printf("look at me %+v\n", itemRes)
-		storyRes, _ := itemRes.ToStoryResponse()
-		return FromStoryResponseToStory(*storyRes)
-	default:
-		return TemporaryItem{ID: itemRes.ID}
-		// panic("this type is not supported yet")
+func fromItemResponseToUnknownItem(itemRes rest.ItemResponse) UnknownItem {
+	kids := make([]int, 0)
+	if itemRes.Kids != nil {
+		kids = *itemRes.Kids
+	}
+	
+	parts := make([]int, 0)
+	if itemRes.Parts != nil {
+		parts = *itemRes.Parts
+	}
+	return UnknownItem {
+		By: itemRes.By,
+		ID: itemRes.ID,
+		Type: itemRes.Type,
+		Time: itemRes.Time,
+		Descendants: itemRes.Descendants,
+		Kids: kids,
+		Score: itemRes.Score,
+		Title: itemRes.Title,
+		URL: itemRes.URL,
+		Parent: itemRes.Parent,
+		Text: itemRes.Text,
+		Parts: parts,
+		Poll: itemRes.Poll,
 	}
 }
 
-type TemporaryItem struct {
-	ID int
+//TODO deal with all the error when converting from item to the concrete type
+func FromItemResponseToItem(itemRes rest.ItemResponse) Item {
+	switch itemRes.Type {
+	case "story":
+		storyRes, _ := itemRes.ToStoryResponse()
+		return FromStoryResponseToStory(*storyRes)
+	// case "job":
+	// 	jobRes, _ := itemRes.ToJobResponse()
+	// case "comment":
+	// 	commentRes, _ := itemRes.ToCommentResponse()
+	// case "poll":
+	// 	pollRes, _ := itemRes.ToPollResponse()
+	// case "pollopt":
+	// 	pollOptRes, _ := itemRes.ToPollOptResponse()
+	default:
+		return fromItemResponseToUnknownItem(itemRes)
+	}
 }
-
-func (TemporaryItem) IsItem() {}

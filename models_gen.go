@@ -36,6 +36,24 @@ type Timestamp struct {
 	UnixTime int       `json:"unixTime"`
 }
 
+type UnknownItem struct {
+	By          string  `json:"by"`
+	ID          int     `json:"id"`
+	Type        string  `json:"type"`
+	Time        int     `json:"time"`
+	Descendants *int    `json:"descendants"`
+	Kids        []int   `json:"kids"`
+	Score       *int    `json:"score"`
+	Title       *string `json:"title"`
+	URL         *string `json:"url"`
+	Parent      *int    `json:"parent"`
+	Text        *string `json:"text"`
+	Parts       []int   `json:"parts"`
+	Poll        *int    `json:"poll"`
+}
+
+func (UnknownItem) IsItem() {}
+
 type User struct {
 	ID        string     `json:"id"`
 	About     string     `json:"about"`

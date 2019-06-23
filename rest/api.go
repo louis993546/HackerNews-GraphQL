@@ -67,7 +67,7 @@ func (i *ItemResponse) ToStoryResponse() (*StoryResponse, error) {
 		return nil, fmt.Errorf("%d is not a story, but a %s", i.ID, i.Type)
 	}
 
-	// fmt.Printf("look at me!!!!!! %+v\n", *i)
+	fmt.Printf("look at me!!!!!! %+v\n", *i)
 
 	// If a story has no comment, it has nil kids
 	kids := make([]int, 0)
@@ -81,6 +81,12 @@ func (i *ItemResponse) ToStoryResponse() (*StoryResponse, error) {
 		desc = *i.Descendants
 	}
 
+	// Sometimes URL can be nil as well
+	url := ""
+	if i.URL != nil {
+		url = *i.URL
+	}
+
 	return &StoryResponse{
 		By: i.By,
 		Descendants: desc,
@@ -90,6 +96,6 @@ func (i *ItemResponse) ToStoryResponse() (*StoryResponse, error) {
 		Time: i.Time,
 		Title: *i.Title,
 		Type: i.Type,
-		URL: *i.URL,
+		URL: url,
 	}, nil
 }
