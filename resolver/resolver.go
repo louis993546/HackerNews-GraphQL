@@ -35,5 +35,5 @@ func (r *storyResolver) By(ctx context.Context, obj *hngql.Story) (*hngql.User, 
 type userResolver struct{ *Resolver }
 
 func (r *userResolver) Submitted(ctx context.Context, obj *hngql.User) ([]hngql.Item, error) {
-	panic("not implemented")
+	return resolveItemListByUser(*obj)
 }

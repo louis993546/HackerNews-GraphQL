@@ -6,27 +6,18 @@ import (
 	"net/http"
 )
 
-// TODO need to figure out how to best construct this funciton
-// func getItem(id int) Item { }
-
 func GetStory(id int) (*StoryResponse, error) {
-	url := fmt.Sprintf("https://hacker-news.firebaseio.com/v0/item/%d.json", id)
-	req, err := http.NewRequest("GET", url, nil)
+	itemRes, err := GetItem(id)
 	if err != nil {
-		return nil, err
-	}
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-	var storyRes StoryResponse
-	if err := json.NewDecoder(resp.Body).Decode(&storyRes); err != nil {
 		return nil, err
 	}
 
-	return &storyRes, nil
+	story, err := itemRes.ToStoryResponse()
+	if err != nil {
+		return nil, err
+	}
+
+	return story, nil
 }
 
 func GetUser(username string) (*UserResponse, error) {
@@ -47,4 +38,57 @@ func GetUser(username string) (*UserResponse, error) {
 	}
 
 	return &userRes, nil
+}
+
+func GetItem(id int) (*ItemResponse, error) {
+	url := fmt.Sprintf("https://hacker-news.firebaseio.com/v0/item/%d.json", id)
+	req, err := http.NewRequest("GET", url, nil)
+	if err != nil {
+		return nil, err
+	}
+	client := &http.Client{}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, err
+	}
+	defer resp.Body.Close()
+	var itemRes ItemResponse
+	if err := json.NewDecoder(resp.Body).Decode(&itemRes); err != nil {
+		return nil, err
+	}
+
+	//TODO: ideally some extra validation
+
+	return &itemRes, nil
+}
+
+func (i *ItemResponse) ToStoryResponse() (*StoryResponse, error) {
+	if i.Type != "story" {
+		return nil, fmt.Errorf("%d is not a story, but a %s", i.ID, i.Type)
+	}
+
+	emptyListOfKids := make([]int, 0)
+	kids := make([]int, 0)
+	if *i.Kids == nil {
+		kids = emptyListOfKids
+	} else {
+		kids = *i.Kids
+	}
+
+	if i.Descendants == nil {
+		desc := 0
+		i.Descendants = &desc
+	}
+
+	return &StoryResponse{
+		By: i.By,
+		Descendants: *i.Descendants,
+		ID: i.ID,
+		Kids: kids,
+		Score: *i.Score,
+		Time: i.Time,
+		Title: *i.Title,
+		Type: i.Type,
+		URL: *i.URL,
+	}, nil
 }

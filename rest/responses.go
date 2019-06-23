@@ -20,3 +20,19 @@ type UserResponse struct {
 	Karma     int    `json:"karma"`
 	Submitted []int  `json:"submitted"`
 }
+
+type ItemResponse struct {
+	By          string  `json:"by"`
+	ID          int     `json:"id"`
+	Type        string  `json:"type"`
+	Time        int     `json:"time"`
+	Descendants *int    `json:"descendants"`
+	Kids        *[]int  `json:"kids"`
+	Score       *int    `json:"score"`
+	Title       *string `json:"title"`
+	URL         *string `json:"url"`
+	Parent      *int    `json:"parent"`
+	Text        *string `json:"text"`
+	Parts       *[]int  `json:"parts"`
+	Poll        *int    `json:"poll"`
+}

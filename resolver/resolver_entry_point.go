@@ -24,3 +24,14 @@ func resolveUserByStory(story hngql.Story) (*hngql.User, error) {
 	user := hngql.FromUserResponseToUser(*userRes)
 	return &user, nil
 }
+
+//TODO don't do API call in a for loop
+func resolveItemListByUser(user hngql.User) ([]hngql.Item, error) {
+	output := make([]hngql.Item, len(user.Submitted))
+	for i, v := range user.Submitted {
+		idContainer := v.(hngql.Story)
+		item, _ := rest.GetItem(idContainer.ID)
+		output[i] = hngql.FromItemResponseToItem(*item)
+	}
+	return output, nil
+}
