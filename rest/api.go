@@ -67,22 +67,23 @@ func (i *ItemResponse) ToStoryResponse() (*StoryResponse, error) {
 		return nil, fmt.Errorf("%d is not a story, but a %s", i.ID, i.Type)
 	}
 
-	emptyListOfKids := make([]int, 0)
+	// fmt.Printf("look at me!!!!!! %+v\n", *i)
+
+	// If a story has no comment, it has nil kids
 	kids := make([]int, 0)
-	if *i.Kids == nil {
-		kids = emptyListOfKids
-	} else {
+	if i.Kids != nil {
 		kids = *i.Kids
 	}
 
-	if i.Descendants == nil {
-		desc := 0
-		i.Descendants = &desc
+	// Somehow some of the stories have comments but no descendants value !?
+	desc := 0
+	if i.Descendants != nil {
+		desc = *i.Descendants
 	}
 
 	return &StoryResponse{
 		By: i.By,
-		Descendants: *i.Descendants,
+		Descendants: desc,
 		ID: i.ID,
 		Kids: kids,
 		Score: *i.Score,

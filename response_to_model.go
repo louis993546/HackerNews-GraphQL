@@ -64,19 +64,13 @@ func FromItemResponseToItem(itemRes rest.ItemResponse) Item {
 		storyRes, _ := itemRes.ToStoryResponse()
 		return FromStoryResponseToStory(*storyRes)
 	default:
-		// TODO all of these are just placeholders
-		return FromStoryResponseToStory(
-			rest.StoryResponse {
-				By: "test",
-				Descendants: 0,
-				ID: 0,
-				Score: 0,
-				Time: 10000000,
-				Title: "test",
-				Type: "story",
-				URL: "test",
-			},
-		)
+		return TemporaryItem{ID: itemRes.ID}
 		// panic("this type is not supported yet")
 	}
 }
+
+type TemporaryItem struct {
+	ID int
+}
+
+func (TemporaryItem) IsItem() {}
