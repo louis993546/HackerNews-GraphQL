@@ -17,9 +17,11 @@ require('dotenv').config();
 log.setLevel('debug');
 
 class Story {
-  constructor(id, title) {
+  constructor(id, title, time, by) {
     this.id = id;
     this.title = title;
+    this.time = time;
+    this.by = by;
   }
 }
 
@@ -48,15 +50,15 @@ const UserType = new GraphQLObjectType({
     karma: { type: GraphQLInt },
     delay: { type: GraphQLInt },
   },
+  isTypeOf: value => value instanceof User,
 });
 
 const ItemType = new GraphQLInterfaceType({
   name: 'Item',
   fields: {
     id: { type: GraphQLID },
-    type: { type: GraphQLString }, // TODO: it should be an enum
     time: { type: GraphQLString }, // TODO: it should be a time
-    by: { type: GraphQLString }, // TODO: it should be a user
+    by: { type: UserType },
   },
 });
 
@@ -66,9 +68,8 @@ const StoryType = new GraphQLObjectType({
   fields: {
     id: { type: GraphQLID },
     title: { type: GraphQLString },
-    type: { type: GraphQLString }, // TODO: it should be an enum
     time: { type: GraphQLString }, // TODO: it should be a time
-    by: { type: GraphQLString }, // TODO: it should be a user
+    by: { type: UserType },
   },
   isTypeOf: value => value instanceof Story,
 });
@@ -92,10 +93,10 @@ const MaybeStoryType = new GraphQLUnionType({
   },
 });
 
-
-// all the resolves that i should need
-// id -> story
-// top/best/newest stories -> list of stories
+function resolveUserByHandle(handle) {
+  return api.getUser(handle)
+    .then(res => new User(res.id, res.about, res.karma, res.delay));
+}
 
 function resolveStoryByID(id) {
   return api.getItem(id)
@@ -106,7 +107,8 @@ function resolveStoryByID(id) {
         return item;
       }
     })
-    .then(item => new Story(item.id, item.title));
+    .then(storyRes => resolveUserByHandle(storyRes.by).then(user => Promise.resolve({ s: storyRes, u: user })))
+    .then(res => new Story(res.s.id, res.s.title, res.s.time, res.u));
 }
 
 function something(order) {
@@ -125,7 +127,6 @@ function resolveStoriesByOrder(order) {
       return Promise.all(stories);
     });
 }
-
 
 const queryType = new GraphQLObjectType({
   name: 'Query',
