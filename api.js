@@ -16,33 +16,33 @@ exports.getUser = function getUser(handle) {
 };
 
 exports.getMaxItem = function getMaxItem() {
-  return rq(generateOption('/v0/maxitem'));
+  return rq(generateOption('/maxitem.json'));
 };
 
 exports.getNewStories = function getNewStories() {
-  return rq(generateOption('/v0/newstories'));
+  return rq(generateOption('/newstories.json'));
 };
 
 exports.getTopStories = function getTopStories() {
-  return rq(generateOption('/v0/topstories'));
+  return rq(generateOption('/topstories.json'));
 };
 
 exports.getBestStories = function getBestStories() {
-  return rq(generateOption('/v0/beststories'));
+  return rq(generateOption('/beststories.json'));
 };
 
 exports.getAskStories = function getAskStories() {
-  return rq(generateOption('/v0/askstories'));
+  return rq(generateOption('/askstories.json'));
 };
 
 exports.getShowStories = function getShowStories() {
-  return rq(generateOption('/v0/showstories'));
+  return rq(generateOption('/showstories.json'));
 };
 
 exports.getJobStories = function getJobStories() {
-  return rq(generateOption('/v0/jobstories'));
+  return rq(generateOption('/jobstories.json'));
 };
 
 exports.getUpdates = function getUpdates() {
-  return rq(generateOption('/v0/updates'));
+  return rq(generateOption('/updates.json'));
 };

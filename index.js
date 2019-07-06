@@ -77,15 +77,23 @@ const queryType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLID },
       },
-      resolve: (_, { id }) => api.getItem(id).then(item => new Story(item.id, item.title)),
+      resolve: (_, { id }) => api
+        .getItem(id)
+        .then((item) => {
+          if (item.type != 'story') {
+            throw `${id} is not a story`;
+          } else {
+            return item;
+          }
+        })
+        .then(item => new Story(item.id, item.title)),
     },
     stories: {
       type: new GraphQLList(MaybeStoryType),
       // args: { }, //TODO: sortBy
       resolve: (_, args) => api
-        .getItem(8863)
-        .then(item => [new Story(item.id, item.title)])
-      ,
+        .getBestStories()
+        .then(storiesID => Promise.all(storiesID.map(id => api.getItem(id).then(fullStory => new Story(fullStory.id, fullStory.title))))),
     },
   },
 });
