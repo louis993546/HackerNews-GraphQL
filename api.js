@@ -1,55 +1,48 @@
-const request = require('request');
+const rq = require('request-promise-native');
 
-const options = {
-  json: true,
-  baseUrl: 'https://hacker-news.firebaseio.com/v0/',
-};
-
-function something(url, callback) {
-  request(url, options, (err, response, body) => callback(err, response, body));
+function generateOption(endpoint) {
+  return {
+    json: true,
+    uri: `https://hacker-news.firebaseio.com/v0${endpoint}`,
+  };
 }
 
-exports.getItem = function getItem(id, callback) {
-  something(`/item/${id}.json`, callback);
+exports.getItem = function getItem(id) {
+  return rq(generateOption(`/item/${id}.json`));
 };
 
-exports.getUser = function getUser(handle, callback) {
-  something(`/user/${handle}.json`, callback);
+exports.getUser = function getUser(handle) {
+  return rq(generateOption(`/user/${handle}.json`));
 };
 
-exports.getMaxItem = function getMaxItem(callback) {
-  something('/v0/maxitem', callback);
+exports.getMaxItem = function getMaxItem() {
+  return rq(generateOption('/v0/maxitem'));
 };
 
-exports.getNewStories = function getNewStories(callback) {
-  something('/v0/newstories', callback);
+exports.getNewStories = function getNewStories() {
+  return rq(generateOption('/v0/newstories'));
 };
 
-exports.getTopStories = function getTopStories(callback) {
-  something('/v0/topstories', callback);
+exports.getTopStories = function getTopStories() {
+  return rq(generateOption('/v0/topstories'));
 };
 
-exports.getBestStories = function getBestStories(callback) {
-  request('/v0/beststories', callback);
+exports.getBestStories = function getBestStories() {
+  return rq(generateOption('/v0/beststories'));
 };
 
-exports.getAskStories = function getAskStories(callback) {
-  something('/v0/askstories', callback);
+exports.getAskStories = function getAskStories() {
+  return rq(generateOption('/v0/askstories'));
 };
 
-exports.getShowStories = function getShowStories(callback) {
-  something('/v0/showstories', callback);
+exports.getShowStories = function getShowStories() {
+  return rq(generateOption('/v0/showstories'));
 };
 
-exports.getJobStories = function getJobStories(callback) {
-  something('/v0/jobstories', callback);
+exports.getJobStories = function getJobStories() {
+  return rq(generateOption('/v0/jobstories'));
 };
 
-exports.getUpdates = function getUpdates(callback) {
-  something('/v0/updates', callback);
+exports.getUpdates = function getUpdates() {
+  return rq(generateOption('/v0/updates'));
 };
-
-// // For testing only
-// getItem(1234, (err, resp, body) => {
-//   console.log(body);
-// });

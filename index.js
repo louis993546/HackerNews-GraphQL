@@ -10,6 +10,7 @@ const {
   GraphQLList,
 } = require('graphql');
 const api = require('./api.js');
+require('dotenv').config();
 
 class Story {
   constructor(id, title) {
@@ -65,7 +66,6 @@ const MaybeStoryType = new GraphQLUnionType({
     if (value instanceof Deleted) {
       return DeletedType;
     }
-    return null; // TODO: is this how other people do it?
   },
 });
 
@@ -77,19 +77,15 @@ const queryType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLID },
       },
-      resolve: (_, { id }) => {
-        const output = new Story(id, 'test');
-        return output;
-      },
+      resolve: (_, { id }) => api.getItem(id).then(item => new Story(item.id, item.title)),
     },
     stories: {
       type: new GraphQLList(MaybeStoryType),
       // args: { }, //TODO: sortBy
-      resolve: (_, args) => new Promise((resolve) => {
-        api.getItem(8863, (err, resp, body) => {
-          resolve([new Story(body.id)]);
-        });
-      }),
+      resolve: (_, args) => api
+        .getItem(8863)
+        .then(item => [new Story(item.id, item.title)])
+      ,
     },
   },
 });
@@ -104,6 +100,6 @@ app.use('/graphql', graphqlHTTP({
   schema,
   graphiql: true,
 }));
-app.listen(4000);
+app.listen(process.env.PORT);
 // eslint-disable-next-line no-console
-console.log('Running a GraphQL API server at localhost:4000/graphql');
+console.log(`Running a GraphQL API server at localhost:${process.env.PORT}/graphql`);
