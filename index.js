@@ -6,7 +6,9 @@ const {
   GraphQLString,
   GraphQLObjectType,
   GraphQLSchema,
+  GraphQLList,
 } = require('graphql');
+const api = require('./api.js');
 
 class Story {
   constructor(id, title) {
@@ -55,6 +57,15 @@ const queryType = new GraphQLObjectType({
         const output = new Story(id, 'test');
         return output;
       },
+    },
+    stories: {
+      type: new GraphQLList(MaybeStoryType),
+      // args: { }, //TODO: sortBy
+      resolve: (_, args) => new Promise((resolve) => {
+        api.getItem(8863, (err, resp, body) => {
+          resolve([new Story(body.id)]);
+        });
+      }),
     },
   },
 });
