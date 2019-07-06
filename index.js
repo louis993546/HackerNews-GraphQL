@@ -5,12 +5,16 @@ const {
   GraphQLUnionType,
   GraphQLID,
   GraphQLString,
+  GraphQLInt,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLList,
 } = require('graphql');
+const log = require('loglevel');
 const api = require('./api.js');
 require('dotenv').config();
+
+log.setLevel('debug');
 
 class Story {
   constructor(id, title) {
@@ -26,6 +30,25 @@ class Deleted {
     this.time = time;
   }
 }
+
+class User {
+  constructor(id, about, karma, delay) {
+    this.id = id;
+    this.about = about;
+    this.karma = karma;
+    this.delay = delay;
+  }
+}
+
+const UserType = new GraphQLObjectType({
+  name: 'User',
+  fields: {
+    id: { type: GraphQLID },
+    about: { type: GraphQLString },
+    karma: { type: GraphQLInt },
+    delay: { type: GraphQLInt },
+  },
+});
 
 const ItemType = new GraphQLInterfaceType({
   name: 'Item',
@@ -69,6 +92,41 @@ const MaybeStoryType = new GraphQLUnionType({
   },
 });
 
+
+// all the resolves that i should need
+// id -> story
+// top/best/newest stories -> list of stories
+
+function resolveStoryByID(id) {
+  return api.getItem(id)
+    .then((item) => {
+      if (item.type !== 'story') {
+        throw `${id} is not a story`;
+      } else {
+        return item;
+      }
+    })
+    .then(item => new Story(item.id, item.title));
+}
+
+function something(order) {
+  switch (order) {
+    case 'top': return api.getTopStories();
+    case 'best': return api.getBestStories();
+    case 'new': return api.getNewStories();
+    default: throw `${order} is not a valid story order`;
+  }
+}
+
+function resolveStoriesByOrder(order) {
+  return something(order)
+    .then((storiesID) => {
+      const stories = storiesID.map(id => resolveStoryByID(id));
+      return Promise.all(stories);
+    });
+}
+
+
 const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
@@ -77,30 +135,20 @@ const queryType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLID },
       },
-      resolve: (_, { id }) => api
-        .getItem(id)
-        .then((item) => {
-          if (item.type != 'story') {
-            throw `${id} is not a story`;
-          } else {
-            return item;
-          }
-        })
-        .then(item => new Story(item.id, item.title)),
+      resolve: (_, { id }) => resolveStoryByID(id),
     },
     stories: {
       type: new GraphQLList(MaybeStoryType),
       // args: { }, //TODO: sortBy
-      resolve: (_, args) => api
-        .getBestStories()
-        .then(storiesID => Promise.all(storiesID.map(id => api.getItem(id).then(fullStory => new Story(fullStory.id, fullStory.title))))),
+      resolve: (_, args) => resolveStoriesByOrder('best')
+      ,
     },
   },
 });
 
 const schema = new GraphQLSchema({
   query: queryType,
-  types: [MaybeStoryType, StoryType, DeletedType, ItemType],
+  types: [MaybeStoryType, StoryType, DeletedType, ItemType, UserType],
 });
 
 const app = express();
@@ -109,5 +157,4 @@ app.use('/graphql', graphqlHTTP({
   graphiql: true,
 }));
 app.listen(process.env.PORT);
-// eslint-disable-next-line no-console
-console.log(`Running a GraphQL API server at localhost:${process.env.PORT}/graphql`);
+log.info(`Running a GraphQL API server at localhost:${process.env.PORT}/graphql`);
