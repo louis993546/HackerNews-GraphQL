@@ -1,11 +1,11 @@
-var express = require('express');
-var graphqlHTTP = require('express-graphql');
-var {
+const express = require('express');
+const graphqlHTTP = require('express-graphql');
+const {
   GraphQLInterfaceType,
   GraphQLID,
   GraphQLString,
   GraphQLObjectType,
-  GraphQLSchema
+  GraphQLSchema,
 } = require('graphql');
 
 class Story {
@@ -17,58 +17,58 @@ class Story {
 
 class Deleted {
   constructor(id) {
-    this.id = id
+    this.id = id;
   }
 }
 
-var MaybeStoryType = new GraphQLInterfaceType({
+const MaybeStoryType = new GraphQLInterfaceType({
   name: 'MaybeStory',
   fields: { id: { type: GraphQLID } },
-})
+});
 
-var StoryType = new GraphQLObjectType({
+const StoryType = new GraphQLObjectType({
   name: 'Story',
   interfaces: [MaybeStoryType],
   fields: {
     id: { type: GraphQLID },
     title: { type: GraphQLString },
   },
-  isTypeOf: value => value instanceof Story
-})
+  isTypeOf: value => value instanceof Story,
+});
 
-var DeletedType = new GraphQLObjectType({
+const DeletedType = new GraphQLObjectType({
   name: 'Deleted',
   interfaces: [MaybeStoryType],
   fields: { id: { type: GraphQLID } },
-  isTypeOf: value => value instanceof Deleted
-})
+  isTypeOf: value => value instanceof Deleted,
+});
 
-var queryType = new GraphQLObjectType({
+const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
     story: {
       type: MaybeStoryType,
       args: {
-        id: { type: GraphQLID }
+        id: { type: GraphQLID },
       },
       resolve: (_, { id }) => {
-        var output = new Story(id, "test");
-        console.log("Will return " + JSON.stringify(output));
-        return output
-      }
-    }
-  }
+        const output = new Story(id, 'test');
+        return output;
+      },
+    },
+  },
 });
 
-var schema = new GraphQLSchema({ 
+const schema = new GraphQLSchema({
   query: queryType,
-  types: [ MaybeStoryType, StoryType, DeletedType ]
+  types: [MaybeStoryType, StoryType, DeletedType],
 });
 
-var app = express();
+const app = express();
 app.use('/graphql', graphqlHTTP({
-  schema: schema,
+  schema,
   graphiql: true,
 }));
 app.listen(4000);
+// eslint-disable-next-line no-console
 console.log('Running a GraphQL API server at localhost:4000/graphql');
