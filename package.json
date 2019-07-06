@@ -15,5 +15,8 @@
   "bugs": {
     "url": "https://github.com/louistsaitszho/HackerNews-GraphQL/issues"
   },
-  "homepage": "https://github.com/louistsaitszho/HackerNews-GraphQL#readme"
+  "homepage": "https://github.com/louistsaitszho/HackerNews-GraphQL#readme",
+  "dependencies": {
+    "graphql": "^14.4.2"
+  }
 }
