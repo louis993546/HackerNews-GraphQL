@@ -2,6 +2,7 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const {
   GraphQLInterfaceType,
+  GraphQLUnionType,
   GraphQLID,
   GraphQLString,
   GraphQLObjectType,
@@ -18,31 +19,54 @@ class Story {
 }
 
 class Deleted {
-  constructor(id) {
+  constructor(id, type, time) {
     this.id = id;
+    this.type = type;
+    this.time = time;
   }
 }
 
-const MaybeStoryType = new GraphQLInterfaceType({
-  name: 'MaybeStory',
-  fields: { id: { type: GraphQLID } },
+const ItemType = new GraphQLInterfaceType({
+  name: 'Item',
+  fields: {
+    id: { type: GraphQLID },
+    type: { type: GraphQLString }, // TODO: it should be an enum
+    time: { type: GraphQLString }, // TODO: it should be a time
+    by: { type: GraphQLString }, // TODO: it should be a user
+  },
 });
 
 const StoryType = new GraphQLObjectType({
   name: 'Story',
-  interfaces: [MaybeStoryType],
+  interfaces: [ItemType],
   fields: {
     id: { type: GraphQLID },
     title: { type: GraphQLString },
+    type: { type: GraphQLString }, // TODO: it should be an enum
+    time: { type: GraphQLString }, // TODO: it should be a time
+    by: { type: GraphQLString }, // TODO: it should be a user
   },
   isTypeOf: value => value instanceof Story,
 });
 
 const DeletedType = new GraphQLObjectType({
   name: 'Deleted',
-  interfaces: [MaybeStoryType],
   fields: { id: { type: GraphQLID } },
   isTypeOf: value => value instanceof Deleted,
+});
+
+const MaybeStoryType = new GraphQLUnionType({
+  name: 'MaybeStory',
+  types: [DeletedType, StoryType],
+  resolveType(value) {
+    if (value instanceof Story) {
+      return StoryType;
+    }
+    if (value instanceof Deleted) {
+      return DeletedType;
+    }
+    return null; // TODO: is this how other people do it?
+  },
 });
 
 const queryType = new GraphQLObjectType({
@@ -72,7 +96,7 @@ const queryType = new GraphQLObjectType({
 
 const schema = new GraphQLSchema({
   query: queryType,
-  types: [MaybeStoryType, StoryType, DeletedType],
+  types: [MaybeStoryType, StoryType, DeletedType, ItemType],
 });
 
 const app = express();
