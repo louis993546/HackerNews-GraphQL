@@ -18,11 +18,12 @@ require('dotenv').config();
 log.setLevel('debug');
 
 class Story {
-  constructor(id, title, time, by) {
+  constructor(id, title, time, by, comments) {
     this.id = id;
     this.title = title;
     this.time = time;
     this.by = by;
+    this.comments = comments;
   }
 }
 
@@ -30,6 +31,16 @@ class Deleted {
   constructor(id, type, time) {
     this.id = id;
     this.type = type;
+    this.time = time;
+  }
+}
+
+class Comment {
+  constructor(id, by, parent, text, time) {
+    this.id = id;
+    this.by = by;
+    this.parent = parent;
+    this.text = text;
     this.time = time;
   }
 }
@@ -63,6 +74,25 @@ const ItemType = new GraphQLInterfaceType({
   },
 });
 
+const CommentType = new GraphQLObjectType({
+  name: 'Comment',
+  interfaces: [ItemType],
+  fields: {
+    id: { type: GraphQLID },
+    time: { type: GraphQLString }, // TODO: it should be a time
+    by: {
+      type: UserType,
+      resolve: src => resolveUserByHandle(src.by),
+    },
+    parent: {
+      type: ItemType,
+      resolve: () => new Story('fake', 'fake', 'fake', 123),
+    },
+    text: { type: GraphQLString },
+  },
+  isTypeOf: value => value instanceof Comment,
+});
+
 const StoryType = new GraphQLObjectType({
   name: 'Story',
   interfaces: [ItemType],
@@ -73,6 +103,10 @@ const StoryType = new GraphQLObjectType({
     by: {
       type: UserType,
       resolve: src => resolveUserByHandle(src.by),
+    },
+    comments: {
+      type: new GraphQLList(CommentType),
+      resolve: src => resolveCommentsById(src.comments),
     },
   },
   isTypeOf: value => value instanceof Story,
@@ -111,16 +145,14 @@ function resolveUserByHandle(handle) {
     .then(res => new User(res.id, res.about, res.karma, res.delay));
 }
 
+function resolveCommentsById(commentIDs) {
+  return commentIDs.map(id => new Comment(id)); // TODO: somehow each comment should fetch their kids only when necessary
+}
+
 function resolveStoryByID(id) {
   return api.getItem(id)
-    .then((item) => {
-      if (item.type !== 'story') {
-        throw `${id} is not a story`;
-      } else {
-        return item;
-      }
-    })
-    .then(storyRes => new Story(storyRes.id, storyRes.title, storyRes.time, storyRes.by));
+    .then((item) => { if (item.type !== 'story') { throw `${id} is not a story`; } else { return item; } })
+    .then(storyRes => new Story(storyRes.id, storyRes.title, storyRes.time, storyRes.by, storyRes.kids));
 }
 
 function something(order) {
@@ -166,6 +198,7 @@ const schema = new GraphQLSchema({
   types: [
     MaybeStoryType,
     StoryType,
+    CommentType,
     DeletedType,
     ItemType,
     UserType,

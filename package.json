@@ -27,7 +27,7 @@
     "request-promise-native": "^1.0.7"
   },
   "devDependencies": {
-    "eslint": "^6.0.1",
+    "eslint": "^5.16.0",
     "eslint-config-airbnb-base": "^13.2.0",
     "eslint-plugin-import": "^2.18.0",
     "nodemon": "^1.19.1"
