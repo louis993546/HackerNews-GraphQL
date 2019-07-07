@@ -6,6 +6,7 @@ const {
   GraphQLID,
   GraphQLString,
   GraphQLInt,
+  GraphQLEnumType,
   GraphQLObjectType,
   GraphQLSchema,
   GraphQLList,
@@ -96,6 +97,15 @@ const MaybeStoryType = new GraphQLUnionType({
   },
 });
 
+const StoryOrderType = new GraphQLEnumType({
+  name: 'StoryOrder',
+  values: {
+    BEST: { value: 'best' },
+    TOP: { value: 'top' },
+    NEW: { value: 'new' },
+  },
+});
+
 function resolveUserByHandle(handle) {
   return api.getUser(handle)
     .then(res => new User(res.id, res.about, res.karma, res.delay));
@@ -142,8 +152,10 @@ const queryType = new GraphQLObjectType({
     },
     stories: {
       type: new GraphQLList(MaybeStoryType),
-      // args: { }, //TODO: sortBy
-      resolve: (_, args) => resolveStoriesByOrder('best')
+      args: {
+        order: { type: StoryOrderType },
+      },
+      resolve: (_, { order }) => resolveStoriesByOrder(order)
       ,
     },
   },
@@ -151,7 +163,14 @@ const queryType = new GraphQLObjectType({
 
 const schema = new GraphQLSchema({
   query: queryType,
-  types: [MaybeStoryType, StoryType, DeletedType, ItemType, UserType],
+  types: [
+    MaybeStoryType,
+    StoryType,
+    DeletedType,
+    ItemType,
+    UserType,
+    StoryOrderType,
+  ],
 });
 
 const app = express();
