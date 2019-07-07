@@ -69,7 +69,10 @@ const StoryType = new GraphQLObjectType({
     id: { type: GraphQLID },
     title: { type: GraphQLString },
     time: { type: GraphQLString }, // TODO: it should be a time
-    by: { type: UserType },
+    by: {
+      type: UserType,
+      resolve: (src, args) => new User('test', 'test', 1, 1), // TODO call api accordingly
+    },
   },
   isTypeOf: value => value instanceof Story,
 });
@@ -107,8 +110,7 @@ function resolveStoryByID(id) {
         return item;
       }
     })
-    .then(storyRes => resolveUserByHandle(storyRes.by).then(user => Promise.resolve({ s: storyRes, u: user })))
-    .then(res => new Story(res.s.id, res.s.title, res.s.time, res.u));
+    .then(storyRes => new Story(storyRes.id, storyRes.title, storyRes.time));
 }
 
 function something(order) {
