@@ -7,42 +7,35 @@ function generateOption(endpoint) {
   };
 }
 
-exports.getItem = function getItem(id) {
-  return rq(generateOption(`/item/${id}.json`));
-};
-
-exports.getUser = function getUser(handle) {
-  return rq(generateOption(`/user/${handle}.json`));
-};
-
-exports.getMaxItem = function getMaxItem() {
-  return rq(generateOption('/maxitem.json'));
-};
-
-exports.getNewStories = function getNewStories() {
-  return rq(generateOption('/newstories.json'));
-};
-
-exports.getTopStories = function getTopStories() {
-  return rq(generateOption('/topstories.json'));
-};
-
-exports.getBestStories = function getBestStories() {
-  return rq(generateOption('/beststories.json'));
-};
-
-exports.getAskStories = function getAskStories() {
-  return rq(generateOption('/askstories.json'));
-};
-
-exports.getShowStories = function getShowStories() {
-  return rq(generateOption('/showstories.json'));
-};
-
-exports.getJobStories = function getJobStories() {
-  return rq(generateOption('/jobstories.json'));
-};
-
-exports.getUpdates = function getUpdates() {
-  return rq(generateOption('/updates.json'));
+module.exports = {
+  getItem(id) {
+    return rq(generateOption(`/item/${id}.json`));
+  },
+  getUser(handle) {
+    return rq(generateOption(`/user/${handle}.json`));
+  },
+  getMaxItem() {
+    return rq(generateOption('/maxitem.json'));
+  },
+  getNewStories() {
+    return rq(generateOption('/newstories.json'));
+  },
+  getTopStories() {
+    return rq(generateOption('/topstories.json'));
+  },
+  getBestStories() {
+    return rq(generateOption('/beststories.json'));
+  },
+  getAskStories() {
+    return rq(generateOption('/askstories.json'));
+  },
+  getShowStories() {
+    return rq(generateOption('/showstories.json'));
+  },
+  getJobStories() {
+    return rq(generateOption('/jobstories.json'));
+  },
+  getUpdates() {
+    return rq(generateOption('/updates.json'));
+  },
 };

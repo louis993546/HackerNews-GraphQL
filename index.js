@@ -12,47 +12,21 @@ const {
   GraphQLList,
 } = require('graphql');
 const log = require('loglevel');
-const api = require('./api.js');
+const {
+  resolveStoriesByOrder,
+  resolveStoryByID,
+  resolveUserByHandle,
+  resolveCommentsById,
+} = require('./resolvers.js');
+const {
+  Story,
+  Deleted,
+  Comment,
+  User,
+} = require('./classes.js');
 require('dotenv').config();
 
 log.setLevel('debug');
-
-class Story {
-  constructor(id, title, time, by, comments) {
-    this.id = id;
-    this.title = title;
-    this.time = time;
-    this.by = by;
-    this.comments = comments;
-  }
-}
-
-class Deleted {
-  constructor(id, type, time) {
-    this.id = id;
-    this.type = type;
-    this.time = time;
-  }
-}
-
-class Comment {
-  constructor(id, by, parent, text, time) {
-    this.id = id;
-    this.by = by;
-    this.parent = parent;
-    this.text = text;
-    this.time = time;
-  }
-}
-
-class User {
-  constructor(id, about, karma, delay) {
-    this.id = id;
-    this.about = about;
-    this.karma = karma;
-    this.delay = delay;
-  }
-}
 
 const UserType = new GraphQLObjectType({
   name: 'User',
@@ -140,38 +114,6 @@ const StoryOrderType = new GraphQLEnumType({
   },
 });
 
-function resolveUserByHandle(handle) {
-  return api.getUser(handle)
-    .then(res => new User(res.id, res.about, res.karma, res.delay));
-}
-
-function resolveCommentsById(commentIDs) {
-  return commentIDs.map(id => new Comment(id)); // TODO: somehow each comment should fetch their kids only when necessary
-}
-
-function resolveStoryByID(id) {
-  return api.getItem(id)
-    .then((item) => { if (item.type !== 'story') { throw `${id} is not a story`; } else { return item; } })
-    .then(storyRes => new Story(storyRes.id, storyRes.title, storyRes.time, storyRes.by, storyRes.kids));
-}
-
-function something(order) {
-  switch (order) {
-    case 'top': return api.getTopStories();
-    case 'best': return api.getBestStories();
-    case 'new': return api.getNewStories();
-    default: throw `${order} is not a valid story order`;
-  }
-}
-
-function resolveStoriesByOrder(order) {
-  return something(order)
-    .then((storiesID) => {
-      const stories = storiesID.map(id => resolveStoryByID(id));
-      return Promise.all(stories);
-    });
-}
-
 const queryType = new GraphQLObjectType({
   name: 'Query',
   fields: {
@@ -207,9 +149,10 @@ const schema = new GraphQLSchema({
 });
 
 const app = express();
+const port = process.env.PORT;
 app.use('/graphql', graphqlHTTP({
   schema,
   graphiql: true,
 }));
-app.listen(process.env.PORT);
-log.info(`Running a GraphQL API server at localhost:${process.env.PORT}/graphql`);
+app.listen(port);
+log.info(`Running a GraphQL API server at localhost:${port}/graphql`);
