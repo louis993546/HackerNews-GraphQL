@@ -42,14 +42,33 @@ function something(order) {
   }
 }
 
+async function getCommentByID(id) {
+  const commentRes = await api.getItem(id);
+  if (commentRes.type != 'comment') {
+    throw `${id} is not a comment, but a ${commentRes.type}`;
+  }
+
+  return new Comment(
+    commentRes.id,
+    commentRes.by,
+    commentRes.parent,
+    commentRes.text,
+    unixSecondToTime(commentRes.time),
+    commentRes.kids,
+  );
+}
+
 module.exports = {
   async resolveUserByHandle(handle) {
     const res = await api.getUser(handle);
     return new User(res.id, res.about, res.karma, res.delay, unixSecondToTime(res.created));
   },
   resolveCommentsById(commentIDs) {
-    // TODO: somehow each comment should fetch their kids only when necessary
-    return commentIDs.map(id => new Comment(id));
+    if (commentIDs === undefined) {
+      return Promise.resolve();
+    }
+    const comments = commentIDs.map(id => getCommentByID(id));
+    return Promise.all(comments);
   },
   resolveStoryByID(id) {
     return getStoryByID(id);

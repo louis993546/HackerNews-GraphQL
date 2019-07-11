@@ -66,6 +66,7 @@ const CommentType = new GraphQLObjectType({
     kids: {
       type: new GraphQLList(ItemType),
       description: 'Most if not all kids of a comment are also comments',
+      resolve: src => resolveCommentsById(src.kids),
     },
   },
   isTypeOf: value => value instanceof Comment,
