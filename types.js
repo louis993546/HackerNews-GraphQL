@@ -34,6 +34,7 @@ const UserType = new GraphQLObjectType({
     about: { type: GraphQLString },
     karma: { type: GraphQLInt },
     delay: { type: GraphQLInt },
+    created: { type: TimeType },
   },
   isTypeOf: value => value instanceof User,
 });
@@ -126,6 +127,13 @@ const QueryType = new GraphQLObjectType({
       },
       resolve: (_, { order }) => resolveStoriesByOrder(order)
       ,
+    },
+    user: {
+      type: UserType,
+      args: {
+        id: { type: GraphQLID },
+      },
+      resolve: (_, { id }) => resolveUserByHandle(id),
     },
   },
 });
