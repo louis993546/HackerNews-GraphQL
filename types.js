@@ -9,7 +9,7 @@ const {
   GraphQLInt,
 } = require('graphql');
 const {
-  User, Deleted, Comment, Story,
+  User, Deleted, Comment, Story, Time,
 } = require('./classes.js');
 const {
   resolveStoriesByOrder,
@@ -17,6 +17,15 @@ const {
   resolveUserByHandle,
   resolveCommentsById,
 } = require('./resolvers.js');
+
+const TimeType = new GraphQLObjectType({
+  name: 'Time',
+  fields: {
+    unix: { type: GraphQLInt },
+    iso8601: { type: GraphQLString },
+  },
+  isTypeOf: value => value instanceof Time,
+});
 
 const UserType = new GraphQLObjectType({
   name: 'User',
@@ -33,7 +42,7 @@ const ItemType = new GraphQLInterfaceType({
   name: 'Item',
   fields: {
     id: { type: GraphQLID },
-    time: { type: GraphQLString }, // TODO: it should be a time
+    time: { type: TimeType },
     by: { type: UserType },
   },
 });
@@ -43,7 +52,7 @@ const CommentType = new GraphQLObjectType({
   interfaces: [ItemType],
   fields: {
     id: { type: GraphQLID },
-    time: { type: GraphQLString }, // TODO: it should be a time
+    time: { type: TimeType },
     by: {
       type: UserType,
       resolve: src => resolveUserByHandle(src.by),
@@ -53,6 +62,10 @@ const CommentType = new GraphQLObjectType({
       resolve: () => new Story('fake', 'fake', 'fake', 123),
     },
     text: { type: GraphQLString },
+    kids: {
+      type: new GraphQLList(ItemType),
+      description: 'Most if not all kids of a comment are also comments',
+    },
   },
   isTypeOf: value => value instanceof Comment,
 });
@@ -63,7 +76,7 @@ const StoryType = new GraphQLObjectType({
   fields: {
     id: { type: GraphQLID },
     title: { type: GraphQLString },
-    time: { type: GraphQLString }, // TODO: it should be a time
+    time: { type: TimeType },
     by: {
       type: UserType,
       resolve: src => resolveUserByHandle(src.by),
@@ -85,14 +98,6 @@ const DeletedType = new GraphQLObjectType({
 const MaybeStoryType = new GraphQLUnionType({
   name: 'MaybeStory',
   types: [DeletedType, StoryType],
-  resolveType(value) {
-    if (value instanceof Story) {
-      return StoryType;
-    }
-    if (value instanceof Deleted) {
-      return DeletedType;
-    }
-  },
 });
 
 const StoryOrderType = new GraphQLEnumType({
@@ -134,4 +139,5 @@ module.exports = {
   ItemType,
   UserType,
   StoryOrderType,
+  TimeType,
 };

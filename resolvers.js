@@ -1,5 +1,7 @@
 const api = require('./api.js');
-const { Story, Comment, User } = require('./classes.js');
+const {
+  Story, Comment, User, Time,
+} = require('./classes.js');
 
 function something(order) {
   switch (order) {
@@ -8,6 +10,13 @@ function something(order) {
     case 'new': return api.getNewStories();
     default: throw `${order} is not a valid story order`;
   }
+}
+
+function unixSecondToTime(unixSeconds) {
+  return new Time(
+    unixSeconds,
+    new Date(unixSeconds * 1000).toISOString(),
+  );
 }
 
 module.exports = {
@@ -25,7 +34,7 @@ module.exports = {
       .then(storyRes => new Story(
         storyRes.id,
         storyRes.title,
-        storyRes.time,
+        unixSecondToTime(storyRes.time),
         storyRes.by,
         storyRes.kids,
       ));

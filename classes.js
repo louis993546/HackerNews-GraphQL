@@ -35,9 +35,17 @@ class User {
   }
 }
 
+class Time {
+  constructor(unix, iso8601) {
+    this.unix = unix;
+    this.iso8601 = iso8601;
+  }
+}
+
 module.exports = {
   Story,
   Deleted,
   Comment,
   User,
+  Time,
 };
