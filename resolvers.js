@@ -63,7 +63,7 @@ module.exports = {
     const res = await api.getUser(handle);
     return new User(res.id, res.about, res.karma, res.delay, unixSecondToTime(res.created));
   },
-  resolveCommentsById(commentIDs) {
+  resolveCommentsByID(commentIDs) {
     if (commentIDs === undefined) {
       return Promise.resolve();
     }
@@ -79,5 +79,22 @@ module.exports = {
         const stories = storiesID.map(id => getStoryByID(id));
         return Promise.all(stories);
       });
+  },
+  async resolveItemByID(id) {
+    const res = await api.getItem(id);
+    switch (res.type) {
+      case 'story':
+        return new Story(res.id, res.title, res.time, res.by, res.comments);
+      case 'comment':
+        return new Comment(res.id, res.by, res.parent, res.text, res.time, res.kids);
+      case 'pollopt':
+        throw 'TODO';
+      case 'poll':
+        throw 'TODO';
+      case 'job':
+        throw 'TODO';
+      default:
+        throw `Do not understand what type ${res.type} is`;
+    }
   },
 };

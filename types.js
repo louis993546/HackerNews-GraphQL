@@ -15,7 +15,8 @@ const {
   resolveStoriesByOrder,
   resolveStoryByID,
   resolveUserByHandle,
-  resolveCommentsById,
+  resolveCommentsByID,
+  resolveItemByID,
 } = require('./resolvers.js');
 
 const TimeType = new GraphQLObjectType({
@@ -35,11 +36,12 @@ const UserType = new GraphQLObjectType({
     karma: { type: GraphQLInt },
     delay: { type: GraphQLInt },
     created: { type: TimeType },
+    // TODO: submitted
   },
   isTypeOf: value => value instanceof User,
 });
 
-const ItemType = new GraphQLInterfaceType({
+const ItemInterfaceType = new GraphQLInterfaceType({
   name: 'Item',
   fields: {
     id: { type: GraphQLID },
@@ -48,9 +50,29 @@ const ItemType = new GraphQLInterfaceType({
   },
 });
 
+const ItemTypeType = new GraphQLEnumType({
+  name: 'ItemType',
+  values: {
+    STORY: { value: 'story' },
+    COMMENT: { value: 'comment' },
+  },
+});
+
+const DeletedType = new GraphQLObjectType({
+  name: 'Deleted',
+  interfaces: [ItemInterfaceType],
+  fields: {
+    id: { type: GraphQLID },
+    time: { type: TimeType },
+    by: { type: UserType },
+    type: { type: ItemTypeType },
+  },
+  isTypeOf: value => value instanceof Deleted,
+});
+
 const CommentType = new GraphQLObjectType({
   name: 'Comment',
-  interfaces: [ItemType],
+  interfaces: [ItemInterfaceType],
   fields: {
     id: { type: GraphQLID },
     time: { type: TimeType },
@@ -59,22 +81,27 @@ const CommentType = new GraphQLObjectType({
       resolve: src => resolveUserByHandle(src.by),
     },
     parent: {
-      type: ItemType,
-      resolve: () => new Story('fake', 'fake', 'fake', 123),
+      type: ItemInterfaceType,
+      resolve: src => resolveItemByID(src.parent),
     },
     text: { type: GraphQLString },
     kids: {
-      type: new GraphQLList(ItemType),
+      type: new GraphQLList(ItemInterfaceType),
       description: 'Most if not all kids of a comment are also comments',
-      resolve: src => resolveCommentsById(src.kids),
+      resolve: src => resolveCommentsByID(src.kids),
     },
   },
   isTypeOf: value => value instanceof Comment,
 });
 
+const MaybeCommentType = new GraphQLUnionType({
+  name: 'MaybeComment',
+  types: [DeletedType, CommentType],
+});
+
 const StoryType = new GraphQLObjectType({
   name: 'Story',
-  interfaces: [ItemType],
+  interfaces: [ItemInterfaceType],
   fields: {
     id: { type: GraphQLID },
     title: { type: GraphQLString },
@@ -84,17 +111,11 @@ const StoryType = new GraphQLObjectType({
       resolve: src => resolveUserByHandle(src.by),
     },
     comments: {
-      type: new GraphQLList(CommentType),
-      resolve: src => resolveCommentsById(src.comments),
+      type: new GraphQLList(MaybeCommentType),
+      resolve: src => resolveCommentsByID(src.comments),
     },
   },
   isTypeOf: value => value instanceof Story,
-});
-
-const DeletedType = new GraphQLObjectType({
-  name: 'Deleted',
-  fields: { id: { type: GraphQLID } },
-  isTypeOf: value => value instanceof Deleted,
 });
 
 const MaybeStoryType = new GraphQLUnionType({
@@ -141,11 +162,12 @@ const QueryType = new GraphQLObjectType({
 
 module.exports = {
   QueryType,
-  MaybeStoryType,
   StoryType,
+  MaybeStoryType,
   CommentType,
+  MaybeCommentType,
   DeletedType,
-  ItemType,
+  ItemType: ItemInterfaceType,
   UserType,
   StoryOrderType,
   TimeType,
