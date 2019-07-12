@@ -30,24 +30,24 @@ const TimeType = new GraphQLObjectType({
 
 const UserType = new GraphQLObjectType({
   name: 'User',
-  fields: {
+  fields: () => ({
     id: { type: GraphQLID },
     about: { type: GraphQLString },
     karma: { type: GraphQLInt },
     delay: { type: GraphQLInt },
     created: { type: TimeType },
-    // TODO: submitted
-  },
+    submitted: { type: new GraphQLList(ItemInterfaceType) },
+  }),
   isTypeOf: value => value instanceof User,
 });
 
 const ItemInterfaceType = new GraphQLInterfaceType({
   name: 'Item',
-  fields: {
+  fields: () => ({
     id: { type: GraphQLID },
     time: { type: TimeType },
     by: { type: UserType },
-  },
+  }),
 });
 
 const ItemTypeType = new GraphQLEnumType({
@@ -61,19 +61,19 @@ const ItemTypeType = new GraphQLEnumType({
 const DeletedType = new GraphQLObjectType({
   name: 'Deleted',
   interfaces: [ItemInterfaceType],
-  fields: {
+  fields: () => ({
     id: { type: GraphQLID },
     time: { type: TimeType },
     by: { type: UserType },
     type: { type: ItemTypeType },
-  },
+  }),
   isTypeOf: value => value instanceof Deleted,
 });
 
 const CommentType = new GraphQLObjectType({
   name: 'Comment',
   interfaces: [ItemInterfaceType],
-  fields: {
+  fields: () => ({
     id: { type: GraphQLID },
     time: { type: TimeType },
     by: {
@@ -86,11 +86,10 @@ const CommentType = new GraphQLObjectType({
     },
     text: { type: GraphQLString },
     kids: {
-      type: new GraphQLList(ItemInterfaceType),
-      description: 'Most if not all kids of a comment are also comments',
+      type: new GraphQLList(MaybeCommentType),
       resolve: src => resolveCommentsByID(src.kids),
     },
-  },
+  }),
   isTypeOf: value => value instanceof Comment,
 });
 
@@ -102,7 +101,7 @@ const MaybeCommentType = new GraphQLUnionType({
 const StoryType = new GraphQLObjectType({
   name: 'Story',
   interfaces: [ItemInterfaceType],
-  fields: {
+  fields: () => ({
     id: { type: GraphQLID },
     title: { type: GraphQLString },
     time: { type: TimeType },
@@ -114,7 +113,7 @@ const StoryType = new GraphQLObjectType({
       type: new GraphQLList(MaybeCommentType),
       resolve: src => resolveCommentsByID(src.comments),
     },
-  },
+  }),
   isTypeOf: value => value instanceof Story,
 });
 
@@ -134,7 +133,7 @@ const StoryOrderType = new GraphQLEnumType({
 
 const QueryType = new GraphQLObjectType({
   name: 'Query',
-  fields: {
+  fields: () => ({
     story: {
       type: MaybeStoryType,
       args: {
@@ -157,7 +156,7 @@ const QueryType = new GraphQLObjectType({
       },
       resolve: (_, { id }) => resolveUserByHandle(id),
     },
-  },
+  }),
 });
 
 module.exports = {
