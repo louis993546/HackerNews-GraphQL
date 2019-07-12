@@ -1,4 +1,5 @@
 const rq = require('request-promise-native');
+const DataLoader = require('dataloader');
 
 function generateOption(endpoint) {
   return {
@@ -7,9 +8,14 @@ function generateOption(endpoint) {
   };
 }
 
+const itemLoader = new DataLoader(
+  id => Promise.all([rq(generateOption(`/item/${id}.json`))]),
+  { batch: false, cacheKeyFn: key => `${key}_${Math.floor(Date.now() / 100)}` },
+);
+
 module.exports = {
   getItem(id) {
-    return rq(generateOption(`/item/${id}.json`));
+    return itemLoader.load(id);
   },
   getUser(handle) {
     return rq(generateOption(`/user/${handle}.json`));
