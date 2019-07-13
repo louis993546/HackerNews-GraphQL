@@ -10,7 +10,7 @@ function generateOption(endpoint) {
 
 const itemLoader = new DataLoader(
   id => Promise.all([rq(generateOption(`/item/${id}.json`))]),
-  { batch: false, cacheKeyFn: key => `${key}_${Math.floor(Date.now() / 100)}` },
+  { batch: false, cacheKeyFn: key => `${key}_${Math.floor(Date.now() / 1000)}` },
 );
 
 module.exports = {

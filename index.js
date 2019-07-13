@@ -12,6 +12,7 @@ const {
   UserType,
   StoryOrderType,
   TimeType,
+  JobType
 } = require('./types.js');
 require('dotenv').config();
 
@@ -28,6 +29,7 @@ const schema = new GraphQLSchema({
     UserType,
     StoryOrderType,
     TimeType,
+    JobType,
   ],
 });
 

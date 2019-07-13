@@ -18,7 +18,7 @@ const {
   resolveCommentsByID,
   resolveItemByID,
   resolveJobs,
-  resolveJobByID
+  resolveJobByID,
 } = require('./resolvers.js');
 
 const TimeType = new GraphQLObjectType({
@@ -147,7 +147,10 @@ const JobType = new GraphQLObjectType({
     },
     by: {
       type: UserType,
-      resolve: src => resolveUserByHandle(src.by),
+      resolve: async src => {
+        const job = await resolveJobByID(src.id);
+        return await resolveUserByHandle(job.by);
+      },
     },
     score: {
       type: GraphQLInt,
@@ -213,9 +216,6 @@ const QueryType = new GraphQLObjectType({
       type: new GraphQLList(JobType),
       resolve: () => resolveJobs()
     },
-    // show: {
-
-    // }
   }),
 });
 
@@ -230,4 +230,5 @@ module.exports = {
   UserType,
   StoryOrderType,
   TimeType,
+  JobType,
 };

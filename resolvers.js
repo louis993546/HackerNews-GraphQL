@@ -130,5 +130,5 @@ module.exports = {
     const job = await getJobByID(id);
     job.time = unixSecondToTime(job.time);
     return job;
-  }
+  },
 };
