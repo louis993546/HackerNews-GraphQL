@@ -33,6 +33,7 @@ const schema = new GraphQLSchema({
 
 const app = express();
 const port = process.env.PORT;
+if (port === undefined) throw 'PORT not found';
 app.use('/graphql', graphqlHTTP({
   schema,
   graphiql: true,
