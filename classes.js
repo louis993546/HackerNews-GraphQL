@@ -44,10 +44,23 @@ class Time {
   }
 }
 
+class Job {
+  constructor(id, by, title, text, url, score, time) {
+    this.id = id
+    this.by = by
+    this.title = title
+    this.text = text
+    this.url = url
+    this.score = score
+    this.time = time
+  }
+}
+
 module.exports = {
   Story,
   Deleted,
   Comment,
   User,
   Time,
+  Job
 };
