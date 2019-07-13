@@ -85,7 +85,7 @@ const CommentType = new GraphQLObjectType({
       resolve: src => resolveItemByID(src.parent),
     },
     text: { type: GraphQLString },
-    kids: {
+    comments: {
       type: new GraphQLList(MaybeCommentType),
       resolve: src => resolveCommentsByID(src.kids),
     },

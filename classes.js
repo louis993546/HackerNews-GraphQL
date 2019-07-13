@@ -17,13 +17,13 @@ class Deleted {
 }
 
 class Comment {
-  constructor(id, by, parent, text, time, kids) {
+  constructor(id, by, parent, text, time, comments) {
     this.id = id;
     this.by = by;
     this.parent = parent;
     this.text = text;
     this.time = time;
-    this.kids = kids;
+    this.comments = comments;
   }
 }
 

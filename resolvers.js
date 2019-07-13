@@ -33,7 +33,7 @@ function getStoryByID(id) {
     });
 }
 
-function something(order) {
+function getStoryIDsByOrder(order) {
   switch (order) {
     case 'top': return api.getTopStories();
     case 'best': return api.getBestStories();
@@ -44,6 +44,12 @@ function something(order) {
 
 async function getCommentByID(id) {
   const commentRes = await api.getItem(id);
+  
+  //TODO: this one seems like a bug from the API itself, not sure what I should do here
+  if (commentRes == null) {
+    throw `comment ${id} returns null`;
+  }
+
   if (commentRes.type != 'comment') {
     throw `${id} is not a comment, but a ${commentRes.type}`;
   }
@@ -73,12 +79,10 @@ module.exports = {
   resolveStoryByID(id) {
     return getStoryByID(id);
   },
-  resolveStoriesByOrder(order) {
-    return something(order)
-      .then((storiesID) => {
-        const stories = storiesID.map(id => getStoryByID(id));
-        return Promise.all(stories);
-      });
+  async resolveStoriesByOrder(order) {
+    const storiesID = await getStoryIDsByOrder(order);
+    const stories = storiesID.map(id => getStoryByID(id));
+    return Promise.all(stories);
   },
   async resolveItemByID(id) {
     const res = await api.getItem(id);
