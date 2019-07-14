@@ -1,6 +1,6 @@
 const api = require('./api.js');
 const {
-  Story, Comment, User, Time, Deleted, Job
+  Story, Comment, User, Time, Deleted, Job,
 } = require('./classes.js');
 
 function unixSecondToTime(unixSeconds) {
@@ -45,7 +45,7 @@ function getStoryIDsByOrder(order) {
 async function getCommentByID(id) {
   const commentRes = await api.getItem(id);
 
-  //TODO: this one seems like a bug from the API itself, not sure what I should do here
+  // TODO: this one seems like a bug from the API itself, not sure what I should do here
   if (commentRes == null) {
     throw `comment ${id} returns null`;
   }
@@ -65,12 +65,12 @@ async function getCommentByID(id) {
 }
 
 async function getJobs() {
-  const res = await api.getJobStories()
-  return res.map(id => new Job(id))
+  const res = await api.getJobStories();
+  return res.map(id => new Job(id));
 }
 
 async function getJobByID(id) {
-  const res = await api.getItem(id)
+  const res = await api.getItem(id);
   if (res.type != 'job') {
     throw `${id}: the type is not a job, but a ${res.type}`;
   }
@@ -82,8 +82,8 @@ async function getJobByID(id) {
     res.text,
     res.url,
     res.score,
-    res.time
-  )
+    res.time,
+  );
 }
 
 module.exports = {

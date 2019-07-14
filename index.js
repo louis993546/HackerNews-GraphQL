@@ -12,7 +12,7 @@ const {
   UserType,
   StoryOrderType,
   TimeType,
-  JobType
+  JobType,
 } = require('./types.js');
 require('dotenv').config();
 

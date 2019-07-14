@@ -9,7 +9,7 @@ const {
   GraphQLInt,
 } = require('graphql');
 const {
-  User, Deleted, Comment, Story, Time, Job
+  User, Deleted, Comment, Story, Time, Job,
 } = require('./classes.js');
 const {
   resolveStoriesByOrder,
@@ -140,49 +140,49 @@ const JobType = new GraphQLObjectType({
     id: { type: GraphQLID },
     time: {
       type: TimeType,
-      resolve: async src => {
+      resolve: async (src) => {
         const job = await resolveJobByID(src.id);
         return job.time;
-      }
+      },
     },
     by: {
       type: UserType,
-      resolve: async src => {
+      resolve: async (src) => {
         const job = await resolveJobByID(src.id);
         return await resolveUserByHandle(job.by);
       },
     },
     score: {
       type: GraphQLInt,
-      resolve: async src => {
+      resolve: async (src) => {
         const job = await resolveJobByID(src.id);
         return job.score;
-      }
+      },
     },
     title: {
       type: GraphQLString,
-      resolve: async src => {
+      resolve: async (src) => {
         const job = await resolveJobByID(src.id);
         return job.title;
-      }
+      },
     },
     text: {
       type: GraphQLString,
-      resolve: async src => {
+      resolve: async (src) => {
         const job = await resolveJobByID(src.id);
         return job.text;
-      }
+      },
     },
     url: {
       type: GraphQLString,
-      resolve: async src => {
+      resolve: async (src) => {
         const job = await resolveJobByID(src.id);
         return job.url;
-      }
-    }
+      },
+    },
   }),
-  isTypeOf: value => value instanceof Job
-})
+  isTypeOf: value => value instanceof Job,
+});
 
 const QueryType = new GraphQLObjectType({
   name: 'Query',
@@ -214,7 +214,7 @@ const QueryType = new GraphQLObjectType({
     // },
     jobs: {
       type: new GraphQLList(JobType),
-      resolve: () => resolveJobs()
+      resolve: () => resolveJobs(),
     },
   }),
 });
