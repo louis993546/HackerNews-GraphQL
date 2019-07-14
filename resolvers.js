@@ -33,6 +33,34 @@ function getStoryByID(id) {
     });
 }
 
+// TODO rename this
+function getSomethingByID(id) {
+  return api.getItem(id)
+    .then((res) => {
+      switch (res.type) {
+        case 'job':
+          if (res.deleted === true) {
+            return new Deleted(res.id, 'job', unixSecondToTime(res.time));
+          }
+          return new Job(res.id, res.by, res.title, res.text, res.url, res.score, unixSecondToTime(res.time));
+
+        case 'story':
+          if (res.deleted === true) {
+            return new Deleted(res.id, 'story', unixSecondToTime(res.time));
+          }
+          return new Story(
+            res.id,
+            res.title,
+            unixSecondToTime(res.time),
+            res.by,
+            res.kids,
+          );
+        default:
+          throw `Got ${res.type} for ${id}, instead of job or story`;
+      }
+    });
+}
+
 function getStoryIDsByOrder(order) {
   switch (order) {
     case 'top': return api.getTopStories();
@@ -103,7 +131,7 @@ module.exports = {
   },
   async resolveStoriesByOrder(order) {
     const storiesID = await getStoryIDsByOrder(order);
-    const stories = storiesID.map(id => getStoryByID(id));
+    const stories = storiesID.map(id => getSomethingByID(id));
     return Promise.all(stories);
   },
   async resolveItemByID(id) {

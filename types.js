@@ -184,6 +184,11 @@ const JobType = new GraphQLObjectType({
   isTypeOf: value => value instanceof Job,
 });
 
+const StoryListItemType = new GraphQLUnionType({
+  name: 'StoryListItem',
+  types: [DeletedType, StoryType, JobType],
+});
+
 const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
@@ -195,7 +200,7 @@ const QueryType = new GraphQLObjectType({
       resolve: (_, { id }) => resolveStoryByID(id),
     },
     stories: {
-      type: new GraphQLList(MaybeStoryType),
+      type: new GraphQLList(StoryListItemType),
       args: {
         order: { type: StoryOrderType },
       },
