@@ -12,7 +12,12 @@ const {
   User, Deleted, Comment, Story, Time, Job,
 } = require('./classes.js');
 const {
-  resolveStoriesByOrder,
+  resolveTopStories,
+  resolveBestStories,
+  resolveNewStories,
+  // resolveAsks,
+  // resolveJobs,
+  // resolveShows,
   resolveStoryByID,
   resolveUserByHandle,
   resolveCommentsByID,
@@ -199,14 +204,38 @@ const QueryType = new GraphQLObjectType({
       },
       resolve: (_, { id }) => resolveStoryByID(id),
     },
-    stories: {
+    // stories: {
+    //   type: new GraphQLList(StoryListItemType),
+    //   args: {
+    //     order: { type: StoryOrderType },
+    //   },
+    //   resolve: (_, { order }) => resolveStoriesByOrder(order)
+    //   ,
+    // },
+    topStories: {
       type: new GraphQLList(StoryListItemType),
-      args: {
-        order: { type: StoryOrderType },
-      },
-      resolve: (_, { order }) => resolveStoriesByOrder(order)
-      ,
+      resolve: () => resolveTopStories(),
     },
+    bestStories: {
+      type: new GraphQLList(MaybeStoryType),
+      resolve: () => resolveBestStories(),
+    },
+    newStories: {
+      type: new GraphQLList(MaybeStoryType),
+      resolve: () => resolveNewStories(),
+    },
+    // asks: {
+    //   type: new GraphQLList(TODO()),
+    //   resolve: () => TODO(),
+    // },
+    // shows: {
+    //   type: new GraphQLList(TODO()),
+    //   resolve: () => TODO(),
+    // },
+    // jobs: {
+    //   type: new GraphQLList(TODO()),
+    //   resolve: () => TODO(),
+    // },
     user: {
       type: UserType,
       args: {

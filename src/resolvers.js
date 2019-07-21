@@ -70,6 +70,12 @@ function getStoryIDsByOrder(order) {
   }
 }
 
+async function resolveStoriesByOrder(order) {
+  const storiesID = await getStoryIDsByOrder(order);
+  const stories = storiesID.map(id => getSomethingByID(id));
+  return Promise.all(stories);
+}
+
 async function getCommentByID(id) {
   const commentRes = await api.getItem(id);
 
@@ -129,11 +135,25 @@ module.exports = {
   resolveStoryByID(id) {
     return getStoryByID(id);
   },
-  async resolveStoriesByOrder(order) {
-    const storiesID = await getStoryIDsByOrder(order);
-    const stories = storiesID.map(id => getSomethingByID(id));
-    return Promise.all(stories);
+
+  async resolveTopStories() {
+    return resolveStoriesByOrder('top');
   },
+  async resolveBestStories() {
+    return resolveStoriesByOrder('best');
+  },
+  async resolveNewStories() {
+    return resolveStoriesByOrder('new');
+  },
+  // async resolveAsks() {
+  //   throw 'TODO'
+  // },
+  // async resolveJobs() {
+  //   throw 'TODO'
+  // },
+  // async resolveShows() {
+  //   throw 'TODO'
+  // },
   async resolveItemByID(id) {
     const res = await api.getItem(id);
     switch (res.type) {
