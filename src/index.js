@@ -2,34 +2,23 @@ const express = require('express');
 const graphqlHTTP = require('express-graphql');
 const { GraphQLSchema } = require('graphql');
 const log = require('loglevel');
-const {
-  QueryType,
-  MaybeStoryType,
-  StoryType,
-  CommentType,
-  DeletedType,
-  ItemType,
-  UserType,
-  StoryOrderType,
-  TimeType,
-  JobType,
-} = require('./types.js');
+const types = require('./types.js');
 require('dotenv').config();
 
 log.setLevel('debug');
 
 const schema = new GraphQLSchema({
-  query: QueryType,
+  query: types.QueryType,
   types: [
-    MaybeStoryType,
-    StoryType,
-    CommentType,
-    DeletedType,
-    ItemType,
-    UserType,
-    StoryOrderType,
-    TimeType,
-    JobType,
+    types.MaybeStoryType,
+    types.StoryType,
+    types.CommentType,
+    types.DeletedType,
+    types.ItemType,
+    types.UserType,
+    types.StoryOrderType,
+    types.TimeType,
+    types.JobType,
   ],
 });
 

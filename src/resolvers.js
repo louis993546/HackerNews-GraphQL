@@ -1,64 +1,57 @@
 const api = require('./api.js');
-const {
-  Story, Comment, User, Time, Deleted, Job,
-} = require('./classes.js');
+const response = require('./responses.js');
 
 function unixSecondToTime(unixSeconds) {
-  return new Time(
+  return new response.Time(
     unixSeconds,
     new Date(unixSeconds * 1000).toISOString(),
   );
 }
 
-function getStoryByID(id) {
-  return api.getItem(id)
-    .then((item) => {
-      if (item.type !== 'story') {
-        throw `${id} is not a story, but a ${item.type} instead`;
-      } else {
-        return item;
-      }
-    })
-    .then((storyRes) => {
-      if (storyRes.deleted == true) {
-        return new Deleted(storyRes.id, 'story', unixSecondToTime(storyRes.time));
-      }
-      return new Story(
-        storyRes.id,
-        storyRes.title,
-        unixSecondToTime(storyRes.time),
-        storyRes.by,
-        storyRes.kids,
-      );
-    });
+async function getStoryByID(id) {
+  const res = await api.getItem(id);
+  if (res.type !== 'story') {
+    throw `${id} is not a story, but a ${res.type} instead`;
+  }
+
+  if (res.deleted === true) {
+    return new response.Deleted(res.id, 'story', unixSecondToTime(res.time));
+  }
+
+  return new response.Story(
+    res.id,
+    res.title,
+    unixSecondToTime(res.time),
+    res.by,
+    res.kids,
+  );
 }
 
 // TODO rename this
-function getSomethingByID(id) {
-  return api.getItem(id)
-    .then((res) => {
-      switch (res.type) {
-        case 'job':
-          if (res.deleted === true) {
-            return new Deleted(res.id, 'job', unixSecondToTime(res.time));
-          }
-          return new Job(res.id, res.by, res.title, res.text, res.url, res.score, unixSecondToTime(res.time));
-
-        case 'story':
-          if (res.deleted === true) {
-            return new Deleted(res.id, 'story', unixSecondToTime(res.time));
-          }
-          return new Story(
-            res.id,
-            res.title,
-            unixSecondToTime(res.time),
-            res.by,
-            res.kids,
-          );
-        default:
-          throw `Got ${res.type} for ${id}, instead of job or story`;
+async function getSomethingByID(id) {
+  const res = await api.getItem(id);
+  switch (res.type) {
+    case 'job':
+      if (res.deleted === true) {
+        return new response.Deleted(res.id, 'job', unixSecondToTime(res.time));
       }
-    });
+      return new response.Job(
+        res.id,
+        res.by,
+        res.title,
+        res.text,
+        res.url,
+        res.score,
+        unixSecondToTime(res.time),
+      );
+    case 'story':
+      if (res.deleted === true) {
+        return new response.Deleted(res.id, 'story', unixSecondToTime(res.time));
+      }
+      return new response.Story(res.id, res.title, unixSecondToTime(res.time), res.by, res.kids);
+    default:
+      throw `Got ${res.type} for ${id}, instead of job or story`;
+  }
 }
 
 function getStoryIDsByOrder(order) {
@@ -84,11 +77,11 @@ async function getCommentByID(id) {
     throw `comment ${id} returns null`;
   }
 
-  if (commentRes.type != 'comment') {
+  if (commentRes.type !== 'comment') {
     throw `${id} is not a comment, but a ${commentRes.type}`;
   }
 
-  return new Comment(
+  return new response.Comment(
     commentRes.id,
     commentRes.by,
     commentRes.parent,
@@ -100,16 +93,16 @@ async function getCommentByID(id) {
 
 async function getJobs() {
   const res = await api.getJobStories();
-  return res.map(id => new Job(id));
+  return res.map(id => new response.Job(id));
 }
 
 async function getJobByID(id) {
   const res = await api.getItem(id);
-  if (res.type != 'job') {
+  if (res.type !== 'job') {
     throw `${id}: the type is not a job, but a ${res.type}`;
   }
 
-  return new Job(
+  return new response.Job(
     res.id,
     res.by,
     res.title,
@@ -123,7 +116,13 @@ async function getJobByID(id) {
 module.exports = {
   async resolveUserByHandle(handle) {
     const res = await api.getUser(handle);
-    return new User(res.id, res.about, res.karma, res.delay, unixSecondToTime(res.created));
+    return new response.User(
+      res.id,
+      res.about,
+      res.karma,
+      res.delay,
+      unixSecondToTime(res.created),
+    );
   },
   resolveCommentsByID(commentIDs) {
     if (commentIDs === undefined) {
@@ -132,7 +131,7 @@ module.exports = {
     const comments = commentIDs.map(id => getCommentByID(id));
     return Promise.all(comments);
   },
-  resolveStoryByID(id) {
+  async resolveStoryByID(id) {
     return getStoryByID(id);
   },
 
@@ -158,9 +157,9 @@ module.exports = {
     const res = await api.getItem(id);
     switch (res.type) {
       case 'story':
-        return new Story(res.id, res.title, res.time, res.by, res.comments);
+        return new response.Story(res.id, res.title, res.time, res.by, res.comments);
       case 'comment':
-        return new Comment(res.id, res.by, res.parent, res.text, res.time, res.kids);
+        return new response.Comment(res.id, res.by, res.parent, res.text, res.time, res.kids);
       case 'pollopt':
         throw 'TODO';
       case 'poll':

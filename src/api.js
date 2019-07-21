@@ -1,5 +1,5 @@
 const rq = require('request-promise-native');
-const DataLoader = require('dataloader');
+// const DataLoader = require('dataloader');
 
 function generateOption(endpoint) {
   return {
@@ -8,14 +8,16 @@ function generateOption(endpoint) {
   };
 }
 
-const itemLoader = new DataLoader(
-  id => Promise.all([rq(generateOption(`/item/${id}.json`))]),
-  { batch: false, cacheKeyFn: key => `${key}_${Math.floor(Date.now() / 1000)}` },
-);
+// TODO figure out how to do DataLoader with auto-expire
+// const itemLoader = new DataLoader(
+//   id => Promise.all([rq(generateOption(`/item/${id}.json`))]),
+//   { batch: false, cacheKeyFn: key => `${key}_${Math.floor(Date.now() / 1000)}` },
+// );
 
 module.exports = {
   getItem(id) {
-    return itemLoader.load(id);
+    // return itemLoader.load(id);
+    return rq(generateOption(`/item/${id}.json`));
   },
   getUser(handle) {
     return rq(generateOption(`/user/${handle}.json`));

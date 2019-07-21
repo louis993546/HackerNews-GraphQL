@@ -10,7 +10,7 @@ const {
 } = require('graphql');
 const {
   User, Deleted, Comment, Story, Time, Job,
-} = require('./classes.js');
+} = require('./responses.js');
 const {
   resolveTopStories,
   resolveBestStories,
@@ -197,21 +197,6 @@ const StoryListItemType = new GraphQLUnionType({
 const QueryType = new GraphQLObjectType({
   name: 'Query',
   fields: () => ({
-    story: {
-      type: MaybeStoryType,
-      args: {
-        id: { type: GraphQLID },
-      },
-      resolve: (_, { id }) => resolveStoryByID(id),
-    },
-    // stories: {
-    //   type: new GraphQLList(StoryListItemType),
-    //   args: {
-    //     order: { type: StoryOrderType },
-    //   },
-    //   resolve: (_, { order }) => resolveStoriesByOrder(order)
-    //   ,
-    // },
     topStories: {
       type: new GraphQLList(StoryListItemType),
       resolve: () => resolveTopStories(),
@@ -236,6 +221,13 @@ const QueryType = new GraphQLObjectType({
     //   type: new GraphQLList(TODO()),
     //   resolve: () => TODO(),
     // },
+    story: {
+      type: MaybeStoryType,
+      args: {
+        id: { type: GraphQLID },
+      },
+      resolve: (_, { id }) => resolveStoryByID(id),
+    },
     user: {
       type: UserType,
       args: {
@@ -243,13 +235,12 @@ const QueryType = new GraphQLObjectType({
       },
       resolve: (_, { id }) => resolveUserByHandle(id),
     },
-    // ask: {
-
-    // },
     jobs: {
       type: new GraphQLList(JobType),
       resolve: () => resolveJobs(),
     },
+    // ask: { },
+    // show: { },
   }),
 });
 
