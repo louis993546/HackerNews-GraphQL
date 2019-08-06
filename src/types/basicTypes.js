@@ -25,9 +25,7 @@ const ItemType = new GraphQLInterfaceType({
   name: 'Item',
   fields: () => ({
     id: { type: GraphQLID },
-    // eslint-disable-next-line no-use-before-define
     time: { type: TimeType },
-    // eslint-disable-next-line no-use-before-define
     by: { type: UserType },
   }),
 });
@@ -83,10 +81,11 @@ const StoryType = new GraphQLObjectType({
       type: UserType,
       resolve: src => resolveUserByHandle(src.by),
     },
-    // comments: {
-    //   type: new GraphQLList(compoundTypes.MaybeCommentType),
-    //   resolve: src => resolveCommentsByID(src.comments),
-    // },
+    comments: {
+      // eslint-disable-next-line no-use-before-define
+      type: new GraphQLList(MaybeCommentType),
+      resolve: src => resolveCommentsByID(src.comments),
+    },
   }),
   isTypeOf: value => value instanceof response.Story,
 });
@@ -126,10 +125,11 @@ const CommentType = new GraphQLObjectType({
       resolve: src => resolveItemByID(src.parent),
     },
     text: { type: GraphQLString },
-    // comments: {
-    //   type: new GraphQLList(compoundTypes.MaybeCommentType),
-    //   resolve: src => resolveCommentsByID(src.kids),
-    // },
+    comments: {
+      // eslint-disable-next-line no-use-before-define
+      type: new GraphQLList(MaybeCommentType),
+      resolve: src => resolveCommentsByID(src.kids),
+    },
   }),
   isTypeOf: value => value instanceof response.Comment,
 });
