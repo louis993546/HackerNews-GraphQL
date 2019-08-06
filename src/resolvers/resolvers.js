@@ -1,5 +1,5 @@
-const api = require('./api.js');
-const response = require('./responses.js');
+const api = require('../api.js');
+const response = require('../responses.js');
 
 function unixSecondToTime(unixSeconds) {
   return new response.Time(
