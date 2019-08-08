@@ -5,7 +5,7 @@ const log = require('loglevel');
 const { QueryType } = require('./types/types.js');
 require('dotenv').config();
 
-log.setLevel('debug');
+log.setLevel('debug'); // TODO move this to some kind of configurable
 
 const schema = new GraphQLSchema({ query: QueryType });
 

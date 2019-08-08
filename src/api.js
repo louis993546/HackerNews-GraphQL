@@ -1,5 +1,11 @@
 const rq = require('request-promise-native');
-// const DataLoader = require('dataloader');
+const redis = require('redis');
+const { promisify } = require('util');
+const log = require('loglevel');
+
+const timeout = 100; // TODO move this to some kind of configurable
+const client = redis.createClient();
+const getAsync = promisify(client.get).bind(client);
 
 function generateOption(endpoint) {
   return {
@@ -8,16 +14,23 @@ function generateOption(endpoint) {
   };
 }
 
-// TODO figure out how to do DataLoader with auto-expire
-// const itemLoader = new DataLoader(
-//   id => Promise.all([rq(generateOption(`/item/${id}.json`))]),
-//   { batch: false, cacheKeyFn: key => `${key}_${Math.floor(Date.now() / 1000)}` },
-// );
+async function redisOrRequest(key, request) {
+  const cache = await getAsync(key);
+  if (cache) {
+    log.debug(`cache found for ${key}`);
+    return JSON.parse(cache);
+  }
+  log.debug(`cache not found for ${key}`);
+  const response = await request;
+  client.setex(key, timeout, JSON.stringify(response));
+  return response;
+}
 
 module.exports = {
   getItem(id) {
-    // return itemLoader.load(id);
-    return rq(generateOption(`/item/${id}.json`));
+    const key = `item_${id}`;
+    const request = rq(generateOption(`/item/${id}.json`));
+    return redisOrRequest(key, request);
   },
   getUser(handle) {
     return rq(generateOption(`/user/${handle}.json`));
