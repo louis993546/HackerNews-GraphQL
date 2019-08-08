@@ -23,7 +23,7 @@ const QueryType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      resolve: () => resolveTopStories(),
+      resolve: (_, { limit, offset }) => resolveTopStories(limit, offset),
     },
     bestStories: {
       type: new GraphQLList(basicTypes.MaybeStoryType),
@@ -31,7 +31,7 @@ const QueryType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      resolve: () => resolveBestStories(),
+      resolve: (_, { limit, offset }) => resolveBestStories(limit, offset),
     },
     newStories: {
       type: new GraphQLList(basicTypes.MaybeStoryType),
@@ -39,7 +39,7 @@ const QueryType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      resolve: () => resolveNewStories(),
+      resolve: (_, { limit, offset }) => resolveNewStories(limit, offset),
     },
     story: {
       type: basicTypes.MaybeStoryType,
@@ -57,7 +57,11 @@ const QueryType = new GraphQLObjectType({
     },
     jobs: {
       type: new GraphQLList(basicTypes.JobType),
-      resolve: () => resolveJobs(),
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
+      resolve: (_, { limit, offset }) => resolveJobs(limit, offset),
     },
   }),
 });

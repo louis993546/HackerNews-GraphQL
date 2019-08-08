@@ -63,9 +63,11 @@ function getStoryIDsByOrder(order) {
   }
 }
 
-async function resolveStoriesByOrder(order) {
+async function resolveStoriesByOrder(order, limit, offset) {
   const storiesID = await getStoryIDsByOrder(order);
-  const stories = storiesID.map(id => getSomethingByID(id));
+  const stories = storiesID
+    .slice(offset, offset + limit)
+    .map(id => getSomethingByID(id));
   return Promise.all(stories);
 }
 
@@ -91,9 +93,9 @@ async function getCommentByID(id) {
   );
 }
 
-async function getJobs() {
+async function getJobs(limit, offset) {
   const res = await api.getJobStories();
-  return res.map(id => new response.Job(id));
+  return res.slice(offset, offset + limit).map(id => new response.Job(id));
 }
 
 async function getJobByID(id) {
@@ -135,14 +137,14 @@ module.exports = {
     return getStoryByID(id);
   },
 
-  async resolveTopStories() {
-    return resolveStoriesByOrder('top');
+  async resolveTopStories(limit, offset) {
+    return resolveStoriesByOrder('top', limit, offset);
   },
-  async resolveBestStories() {
-    return resolveStoriesByOrder('best');
+  async resolveBestStories(limit, offset) {
+    return resolveStoriesByOrder('best', limit, offset);
   },
-  async resolveNewStories() {
-    return resolveStoriesByOrder('new');
+  async resolveNewStories(limit, offset) {
+    return resolveStoriesByOrder('new', limit, offset);
   },
   // async resolveAsks() {
   //   throw 'TODO'
@@ -170,8 +172,8 @@ module.exports = {
         throw `Do not understand what type ${res.type} is`;
     }
   },
-  resolveJobs() {
-    return getJobs();
+  resolveJobs(limit, offset) {
+    return getJobs(limit, offset);
   },
   async resolveJobByID(id) {
     const job = await getJobByID(id);

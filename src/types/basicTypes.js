@@ -58,6 +58,7 @@ const UserType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
+      // TODO custom resolver
       type: new GraphQLList(ItemType),
     },
   }),
@@ -94,6 +95,7 @@ const StoryType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
+      // TODO use arguments
       resolve: src => resolveCommentsByID(src.comments),
     },
   }),
@@ -142,6 +144,7 @@ const CommentType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
+      // TODO use arguments
       resolve: src => resolveCommentsByID(src.kids),
     },
   }),
