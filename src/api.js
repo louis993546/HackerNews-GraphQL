@@ -4,7 +4,7 @@ const { promisify } = require('util');
 const log = require('loglevel');
 
 const timeout = 100; // TODO move this to some kind of configurable
-const client = redis.createClient();
+const client = redis.createClient(); // TODO gracefully handle no redis
 const getAsync = promisify(client.get).bind(client);
 
 function generateOption(endpoint) {
@@ -17,23 +17,36 @@ function generateOption(endpoint) {
 async function redisOrRequest(key, request) {
   const cache = await getAsync(key);
   if (cache) {
-    log.debug(`cache found for ${key}`);
+    log.debug(`cache hit for ${key}`);
     return JSON.parse(cache);
   }
-  log.debug(`cache not found for ${key}`);
+  log.info(`cache miss for ${key}`);
   const response = await request;
-  client.setex(key, timeout, JSON.stringify(response));
+  if (response) {
+    const responseString = JSON.stringify(response);
+    if (responseString) {
+      client.setex(key, timeout, responseString);
+    } else {
+      log.warn(`"${response}" from "${key}" cannot be stringfy properly`);
+    }
+  } else {
+    log.warn(`failed to fetch ${key} (probably)`);
+  }
   return response;
 }
 
 module.exports = {
   getItem(id) {
     const key = `item_${id}`;
-    const request = rq(generateOption(`/item/${id}.json`));
+    const request = rq(generateOption(`/item/${id}.json`))
+      .catch(err => log.debug(`failed to fetch ${key}: ${err}`));
     return redisOrRequest(key, request);
   },
   getUser(handle) {
-    return rq(generateOption(`/user/${handle}.json`));
+    const key = `user_${handle}`;
+    const request = rq(generateOption(`/user/${handle}.json`))
+      .catch(err => log.debug(`failed to fetch ${key}: ${err}`));
+    return redisOrRequest(key, request);
   },
   getMaxItem() {
     return rq(generateOption('/maxitem.json'));
