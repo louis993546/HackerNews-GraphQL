@@ -8,11 +8,13 @@ const {
   GraphQLString,
   GraphQLInt,
 } = require('graphql');
+// const log = require('loglevel');
 const response = require('../responses.js');
 const {
   resolveStoryByID,
   resolveUserByHandle,
   resolveCommentsByID,
+  resolveCommentByID,
   resolveItemByID,
   resolveJobByID,
 } = require('../resolvers/resolvers.js');
@@ -49,17 +51,45 @@ const UserType = new GraphQLObjectType({
   name: 'User',
   fields: () => ({
     id: { type: GraphQLID },
-    about: { type: GraphQLString },
-    karma: { type: GraphQLInt },
-    delay: { type: GraphQLInt },
-    created: { type: TimeType },
+    about: {
+      type: GraphQLString,
+      resolve: async (src) => {
+        const res = await resolveUserByHandle(src.id);
+        return res.about;
+      },
+    },
+    karma: {
+      type: GraphQLInt,
+      resolve: async (src) => {
+        const res = await resolveUserByHandle(src.id);
+        return res.karma;
+      },
+    },
+    delay: {
+      type: GraphQLInt,
+      resolve: async (src) => {
+        const res = await resolveUserByHandle(src.id);
+        return res.delay;
+      },
+    },
+    created: {
+      type: TimeType,
+      resolve: async (src) => {
+        const res = await resolveUserByHandle(src.id);
+        return res.created;
+      },
+    },
     submitted: {
       args: {
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      // TODO custom resolver
       type: new GraphQLList(ItemType),
+      resolve: async (src, { limit, offset }) => {
+        const res = await resolveUserByHandle(src.id);
+        // TODO this is not returning the right type
+        return res.submitted.slice(offset, offset + limit);
+      },
     },
   }),
   isTypeOf: value => value instanceof response.User,
@@ -81,7 +111,7 @@ const StoryType = new GraphQLObjectType({
       type: TimeType,
       resolve: async (src) => {
         const story = await resolveStoryByID(src.id);
-        return story.time; // TODO map to time
+        return story.time;
       },
     },
     by: {
@@ -95,8 +125,10 @@ const StoryType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      // TODO use arguments
-      resolve: src => resolveCommentsByID(src.comments),
+      resolve: async (src, { limit, offset }) => {
+        const storyRes = await resolveStoryByID(src.id);
+        return storyRes.comments.slice(offset, offset + limit);
+      },
     },
   }),
   isTypeOf: value => value instanceof response.Story,
@@ -127,16 +159,36 @@ const CommentType = new GraphQLObjectType({
   interfaces: [ItemType],
   fields: () => ({
     id: { type: GraphQLID },
-    time: { type: TimeType },
+    time: {
+      type: TimeType,
+      resolve: async (src) => {
+        const res = await resolveCommentByID(src.id);
+        return res.time;
+      },
+    },
     by: {
       type: UserType,
-      resolve: src => resolveUserByHandle(src.by),
+      resolve: async (src) => {
+        const commentRes = await resolveCommentByID(src.id);
+        const userRes = resolveUserByHandle(commentRes.by);
+        return userRes;
+      },
     },
     parent: {
       type: ItemType,
-      resolve: src => resolveItemByID(src.parent),
+      resolve: async (src) => {
+        const commentRes = await resolveCommentByID(src.id);
+        const parentRes = resolveItemByID(commentRes.parent);
+        return parentRes;
+      },
     },
-    text: { type: GraphQLString },
+    text: {
+      type: GraphQLString,
+      resolve: async (src) => {
+        const res = await resolveCommentByID(src.id);
+        return res.text;
+      },
+    },
     comments: {
       // eslint-disable-next-line no-use-before-define
       type: new GraphQLList(MaybeCommentType),
@@ -144,8 +196,7 @@ const CommentType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      // TODO use arguments
-      resolve: src => resolveCommentsByID(src.kids),
+      resolve: (src, { limit, offset }) => resolveCommentsByID(src.kids, limit, offset),
     },
   }),
   isTypeOf: value => value instanceof response.Comment,

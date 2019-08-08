@@ -23,36 +23,46 @@ async function getStoryByID(id) {
     res.title,
     unixSecondToTime(res.time),
     res.by,
-    res.kids,
+    res.kids.map(commentID => new response.Comment(commentID)),
   );
 }
 
-// TODO rename this
-async function getSomethingByID(id) {
-  const res = await api.getItem(id);
-  switch (res.type) {
-    case 'job':
-      if (res.deleted === true) {
-        return new response.Deleted(res.id, 'job', unixSecondToTime(res.time));
-      }
-      return new response.Job(
-        res.id,
-        res.by,
-        res.title,
-        res.text,
-        res.url,
-        res.score,
-        unixSecondToTime(res.time),
-      );
-    case 'story':
-      if (res.deleted === true) {
-        return new response.Deleted(res.id, 'story', unixSecondToTime(res.time));
-      }
-      return new response.Story(res.id, res.title, unixSecondToTime(res.time), res.by, res.kids);
-    default:
-      throw `Got ${res.type} for ${id}, instead of job or story`;
-  }
-}
+// // TODO rename this to "get top story item by id" or something like that
+// async function getSomethingByID(id) {
+//   const res = await api.getItem(id);
+//   switch (res.type) {
+//     case 'job':
+//       if (res.deleted === true) {
+//         return new response.Deleted(res.id, 'job', unixSecondToTime(res.time));
+//       }
+//       return new response.Job(
+//         res.id,
+//         res.by,
+//         res.title,
+//         res.text,
+//         res.url,
+//         res.score,
+//         unixSecondToTime(res.time),
+//       );
+//     case 'story':
+//       if (res.deleted === true) {
+//         return new response.Deleted(
+//           res.id,
+//           'story',
+//           unixSecondToTime(res.time),
+//         );
+//       }
+//       return new response.Story(
+//         res.id,
+//         res.title,
+//         unixSecondToTime(res.time),
+//         res.by, // which is just the id at this point
+//         res.kids, // which is just an array of id at this point
+//       );
+//     default:
+//       throw `Got ${res.type} for ${id}, instead of job or story`;
+//   }
+// }
 
 function getStoryIDsByOrder(order) {
   switch (order) {
@@ -67,7 +77,7 @@ async function resolveStoriesByOrder(order, limit, offset) {
   const storiesID = await getStoryIDsByOrder(order);
   const stories = storiesID
     .slice(offset, offset + limit)
-    .map(id => getSomethingByID(id));
+    .map(id => new response.Story(id));
   return Promise.all(stories);
 }
 
@@ -124,13 +134,19 @@ module.exports = {
       res.karma,
       res.delay,
       unixSecondToTime(res.created),
+      res.submitted,
     );
   },
-  resolveCommentsByID(commentIDs) {
+  async resolveCommentByID(id) {
+    return getCommentByID(id);
+  },
+  async resolveCommentsByID(commentIDs, limit, offset) {
     if (commentIDs === undefined) {
       return Promise.resolve();
     }
-    const comments = commentIDs.map(id => getCommentByID(id));
+    const comments = commentIDs
+      .slice(offset, limit + offset)
+      .map(id => getCommentByID(id));
     return Promise.all(comments);
   },
   async resolveStoryByID(id) {

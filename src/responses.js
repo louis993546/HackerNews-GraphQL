@@ -28,12 +28,13 @@ class Comment {
 }
 
 class User {
-  constructor(id, about, karma, delay, created) {
+  constructor(id, about, karma, delay, created, submitted) {
     this.id = id;
     this.about = about;
     this.karma = karma;
     this.delay = delay;
     this.created = created;
+    this.submitted = submitted;
   }
 }
 
