@@ -13,7 +13,6 @@ const response = require('../responses.js');
 const {
   resolveStoryByID,
   resolveUserByHandle,
-  resolveCommentsByID,
   resolveCommentByID,
   resolveItemByID,
   resolveJobByID,
@@ -196,7 +195,15 @@ const CommentType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      resolve: (src, { limit, offset }) => resolveCommentsByID(src.kids, limit, offset),
+      resolve: async (src, { limit, offset }) => {
+        const res = await resolveCommentByID(src.id);
+        if (res.comments) {
+          return res.comments
+            .slice(offset, offset + limit)
+            .map(commentID => new response.Comment(commentID));
+        }
+        return [];
+      },
     },
   }),
   isTypeOf: value => value instanceof response.Comment,
