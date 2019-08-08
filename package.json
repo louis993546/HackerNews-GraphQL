@@ -24,6 +24,7 @@
     "express-graphql": "^0.8.0",
     "graphql": "^14.4.2",
     "loglevel": "^1.6.3",
+    "redis": "^2.8.0",
     "request": "^2.88.0",
     "request-promise-native": "^1.0.7"
   },
