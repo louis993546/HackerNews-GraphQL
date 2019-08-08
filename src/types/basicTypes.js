@@ -53,7 +53,13 @@ const UserType = new GraphQLObjectType({
     karma: { type: GraphQLInt },
     delay: { type: GraphQLInt },
     created: { type: TimeType },
-    submitted: { type: new GraphQLList(ItemType) },
+    submitted: {
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
+      type: new GraphQLList(ItemType),
+    },
   }),
   isTypeOf: value => value instanceof response.User,
 });
@@ -84,6 +90,10 @@ const StoryType = new GraphQLObjectType({
     comments: {
       // eslint-disable-next-line no-use-before-define
       type: new GraphQLList(MaybeCommentType),
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
       resolve: src => resolveCommentsByID(src.comments),
     },
   }),
@@ -128,6 +138,10 @@ const CommentType = new GraphQLObjectType({
     comments: {
       // eslint-disable-next-line no-use-before-define
       type: new GraphQLList(MaybeCommentType),
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
       resolve: src => resolveCommentsByID(src.kids),
     },
   }),

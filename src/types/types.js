@@ -2,6 +2,7 @@ const {
   GraphQLObjectType,
   GraphQLList,
   GraphQLID,
+  GraphQLInt,
 } = require('graphql');
 const {
   resolveTopStories,
@@ -18,14 +19,26 @@ const QueryType = new GraphQLObjectType({
   fields: () => ({
     topStories: {
       type: new GraphQLList(basicTypes.StoryListItemType),
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
       resolve: () => resolveTopStories(),
     },
     bestStories: {
       type: new GraphQLList(basicTypes.MaybeStoryType),
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
       resolve: () => resolveBestStories(),
     },
     newStories: {
       type: new GraphQLList(basicTypes.MaybeStoryType),
+      args: {
+        limit: { type: GraphQLInt },
+        offset: { type: GraphQLInt },
+      },
       resolve: () => resolveNewStories(),
     },
     story: {
