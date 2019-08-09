@@ -104,30 +104,9 @@ async function getJobByID(id) {
   );
 }
 
-async function resolveUserByHandle(handle) {
-  const res = await api.getUser(handle);
-  return new response.User(
-    res.id,
-    res.about,
-    res.karma,
-    res.delay,
-    unixSecondToTime(res.created),
-    res.submitted,
-  );
-}
-
 module.exports = {
   async resolveCommentByID(id) {
     return getCommentByID(id);
-  },
-  async resolveCommentsByID(commentIDs, limit, offset) {
-    if (commentIDs === undefined) {
-      return Promise.resolve();
-    }
-    const comments = commentIDs
-      .slice(offset, limit + offset)
-      .map(id => getCommentByID(id));
-    return Promise.all(comments);
   },
   async resolveStoryByID(id) {
     return getStoryByID(id);
@@ -141,15 +120,6 @@ module.exports = {
   async resolveNewStories(limit, offset) {
     return resolveStoriesByOrder('new', limit, offset);
   },
-  // async resolveAsks() {
-  //   throw 'TODO'
-  // },
-  // async resolveJobs() {
-  //   throw 'TODO'
-  // },
-  // async resolveShows() {
-  //   throw 'TODO'
-  // },
   async resolveItemByID(id) {
     const res = await api.getItem(id);
     switch (res.type) {

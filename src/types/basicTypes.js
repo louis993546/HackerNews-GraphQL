@@ -12,6 +12,7 @@ const {
 const response = require('../responses.js');
 const userResolvers = require('../resolvers/userResolvers.js');
 const storyResolvers = require('../resolvers/storyResolvers.js');
+const commentResolvers = require('../resolvers/commentResolvers.js');
 const resolvers = require('../resolvers/resolvers.js');
 
 /**
@@ -136,18 +137,11 @@ const CommentType = new GraphQLObjectType({
     id: { type: GraphQLID },
     time: {
       type: TimeType,
-      resolve: async (src) => {
-        const res = await resolvers.esolveCommentByID(src.id);
-        return res.time;
-      },
+      resolve: src => commentResolvers.timeByID(src.id),
     },
     by: {
       type: UserType,
-      resolve: async (src) => {
-        const commentRes = await resolvers.resolveCommentByID(src.id);
-        const userRes = resolvers.resolveUserByHandle(commentRes.by);
-        return userRes;
-      },
+      resolve: src => commentResolvers.userByID(src.id),
     },
     parent: {
       type: ItemType,
@@ -159,10 +153,7 @@ const CommentType = new GraphQLObjectType({
     },
     text: {
       type: GraphQLString,
-      resolve: async (src) => {
-        const res = await resolvers.resolveCommentByID(src.id);
-        return res.text;
-      },
+      resolve: src => commentResolvers.textByID(src.id),
     },
     comments: {
       // eslint-disable-next-line no-use-before-define
