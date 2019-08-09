@@ -1,31 +1,6 @@
 const api = require('../api.js');
 const response = require('../responses.js');
-
-function unixSecondToTime(unixSeconds) {
-  return new response.Time(
-    unixSeconds,
-    new Date(unixSeconds * 1000).toISOString(),
-  );
-}
-
-async function getStoryByID(id) {
-  const res = await api.getItem(id);
-  if (res.type !== 'story') {
-    throw `${id} is not a story, but a ${res.type} instead`;
-  }
-
-  if (res.deleted === true) {
-    return new response.Deleted(res.id, 'story', unixSecondToTime(res.time));
-  }
-
-  return new response.Story(
-    res.id,
-    res.title,
-    unixSecondToTime(res.time),
-    res.by,
-    res.kids.map(commentID => new response.Comment(commentID)),
-  );
-}
+const { unixSecondToTime } = require('./utils.js');
 
 // // TODO rename this to "get top story item by id" or something like that
 // async function getSomethingByID(id) {
@@ -66,10 +41,14 @@ async function getStoryByID(id) {
 
 function getStoryIDsByOrder(order) {
   switch (order) {
-    case 'top': return api.getTopStories();
-    case 'best': return api.getBestStories();
-    case 'new': return api.getNewStories();
-    default: throw `${order} is not a valid story order`;
+    case 'top':
+      return api.getTopStories();
+    case 'best':
+      return api.getBestStories();
+    case 'new':
+      return api.getNewStories();
+    default:
+      throw `${order} is not a valid story order`;
   }
 }
 
@@ -125,18 +104,19 @@ async function getJobByID(id) {
   );
 }
 
+async function resolveUserByHandle(handle) {
+  const res = await api.getUser(handle);
+  return new response.User(
+    res.id,
+    res.about,
+    res.karma,
+    res.delay,
+    unixSecondToTime(res.created),
+    res.submitted,
+  );
+}
+
 module.exports = {
-  async resolveUserByHandle(handle) {
-    const res = await api.getUser(handle);
-    return new response.User(
-      res.id,
-      res.about,
-      res.karma,
-      res.delay,
-      unixSecondToTime(res.created),
-      res.submitted,
-    );
-  },
   async resolveCommentByID(id) {
     return getCommentByID(id);
   },
@@ -152,7 +132,6 @@ module.exports = {
   async resolveStoryByID(id) {
     return getStoryByID(id);
   },
-
   async resolveTopStories(limit, offset) {
     return resolveStoriesByOrder('top', limit, offset);
   },
@@ -175,9 +154,22 @@ module.exports = {
     const res = await api.getItem(id);
     switch (res.type) {
       case 'story':
-        return new response.Story(res.id, res.title, res.time, res.by, res.comments);
+        return new response.Story(
+          res.id,
+          res.title,
+          res.time,
+          res.by,
+          res.comments,
+        );
       case 'comment':
-        return new response.Comment(res.id, res.by, res.parent, res.text, res.time, res.kids);
+        return new response.Comment(
+          res.id,
+          res.by,
+          res.parent,
+          res.text,
+          res.time,
+          res.kids,
+        );
       case 'pollopt':
         throw 'TODO';
       case 'poll':

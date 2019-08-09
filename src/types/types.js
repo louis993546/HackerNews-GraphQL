@@ -9,9 +9,10 @@ const {
   resolveBestStories,
   resolveNewStories,
   resolveStoryByID,
-  resolveUserByHandle,
   resolveJobs,
 } = require('../resolvers/resolvers.js');
+const userResolvers = require('../resolvers/userResolvers.js');
+const storyResolvers = require('../resolvers/storyResolvers.js');
 const basicTypes = require('./basicTypes.js');
 
 const QueryType = new GraphQLObjectType({
@@ -46,14 +47,14 @@ const QueryType = new GraphQLObjectType({
       args: {
         id: { type: GraphQLID },
       },
-      resolve: (_, { id }) => resolveStoryByID(id),
+      resolve: (_, { id }) => storyResolvers.storyByID(id),
     },
     user: {
       type: basicTypes.UserType,
       args: {
         id: { type: GraphQLID },
       },
-      resolve: (_, { id }) => resolveUserByHandle(id),
+      resolve: (_, { id }) => userResolvers.userByID(id),
     },
     jobs: {
       type: new GraphQLList(basicTypes.JobType),

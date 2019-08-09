@@ -10,13 +10,9 @@ const {
 } = require('graphql');
 // const log = require('loglevel');
 const response = require('../responses.js');
-const {
-  resolveStoryByID,
-  resolveUserByHandle,
-  resolveCommentByID,
-  resolveItemByID,
-  resolveJobByID,
-} = require('../resolvers/resolvers.js');
+const userResolvers = require('../resolvers/userResolvers.js');
+const storyResolvers = require('../resolvers/storyResolvers.js');
+const resolvers = require('../resolvers/resolvers.js');
 
 /**
  * Almost everything is an Item (except User), and they share a few common
@@ -52,31 +48,19 @@ const UserType = new GraphQLObjectType({
     id: { type: GraphQLID },
     about: {
       type: GraphQLString,
-      resolve: async (src) => {
-        const res = await resolveUserByHandle(src.id);
-        return res.about;
-      },
+      resolve: src => userResolvers.userAboutByID(src.id),
     },
     karma: {
       type: GraphQLInt,
-      resolve: async (src) => {
-        const res = await resolveUserByHandle(src.id);
-        return res.karma;
-      },
+      resolve: src => userResolvers.userKarmaByID(src.id),
     },
     delay: {
       type: GraphQLInt,
-      resolve: async (src) => {
-        const res = await resolveUserByHandle(src.id);
-        return res.delay;
-      },
+      resolve: src => userResolvers.userDelayByID(src.id),
     },
     created: {
       type: TimeType,
-      resolve: async (src) => {
-        const res = await resolveUserByHandle(src.id);
-        return res.created;
-      },
+      resolve: src => userResolvers.userCreatedByID(src.id),
     },
     submitted: {
       args: {
@@ -84,11 +68,12 @@ const UserType = new GraphQLObjectType({
         offset: { type: GraphQLInt },
       },
       type: new GraphQLList(ItemType),
-      resolve: async (src, { limit, offset }) => {
-        const res = await resolveUserByHandle(src.id);
-        // TODO this is not returning the right type
-        return res.submitted.slice(offset, offset + limit);
-      },
+      resolve: async (src, { limit, offset }) =>
+        // const res = await resolveUserByHandle(src.id);
+        // // TODO this is not returning the right type
+        // return res.submitted.slice(offset, offset + limit);
+        []
+      ,
     },
   }),
   isTypeOf: value => value instanceof response.User,
@@ -101,21 +86,15 @@ const StoryType = new GraphQLObjectType({
     id: { type: GraphQLID },
     title: {
       type: GraphQLString,
-      resolve: async (src) => {
-        const story = await resolveStoryByID(src.id);
-        return story.title;
-      },
+      resolve: src => storyResolvers.titleByID(src.id),
     },
     time: {
       type: TimeType,
-      resolve: async (src) => {
-        const story = await resolveStoryByID(src.id);
-        return story.time;
-      },
+      resolve: src => storyResolvers.timeByID(src.id),
     },
     by: {
       type: UserType,
-      resolve: src => resolveUserByHandle(src.by),
+      resolve: src => storyResolvers.userByID(src.id),
     },
     comments: {
       // eslint-disable-next-line no-use-before-define
@@ -124,10 +103,7 @@ const StoryType = new GraphQLObjectType({
         limit: { type: GraphQLInt },
         offset: { type: GraphQLInt },
       },
-      resolve: async (src, { limit, offset }) => {
-        const storyRes = await resolveStoryByID(src.id);
-        return storyRes.comments.slice(offset, offset + limit);
-      },
+      resolve: (src, { limit, offset }) => storyResolvers.commentsByID(src.id, limit, offset),
     },
   }),
   isTypeOf: value => value instanceof response.Story,
@@ -161,30 +137,30 @@ const CommentType = new GraphQLObjectType({
     time: {
       type: TimeType,
       resolve: async (src) => {
-        const res = await resolveCommentByID(src.id);
+        const res = await resolvers.esolveCommentByID(src.id);
         return res.time;
       },
     },
     by: {
       type: UserType,
       resolve: async (src) => {
-        const commentRes = await resolveCommentByID(src.id);
-        const userRes = resolveUserByHandle(commentRes.by);
+        const commentRes = await resolvers.resolveCommentByID(src.id);
+        const userRes = resolvers.resolveUserByHandle(commentRes.by);
         return userRes;
       },
     },
     parent: {
       type: ItemType,
       resolve: async (src) => {
-        const commentRes = await resolveCommentByID(src.id);
-        const parentRes = resolveItemByID(commentRes.parent);
+        const commentRes = await resolvers.resolveCommentByID(src.id);
+        const parentRes = resolvers.resolveItemByID(commentRes.parent);
         return parentRes;
       },
     },
     text: {
       type: GraphQLString,
       resolve: async (src) => {
-        const res = await resolveCommentByID(src.id);
+        const res = await resolvers.resolveCommentByID(src.id);
         return res.text;
       },
     },
@@ -196,7 +172,7 @@ const CommentType = new GraphQLObjectType({
         offset: { type: GraphQLInt },
       },
       resolve: async (src, { limit, offset }) => {
-        const res = await resolveCommentByID(src.id);
+        const res = await resolvers.resolveCommentByID(src.id);
         if (res.comments) {
           return res.comments
             .slice(offset, offset + limit)
@@ -217,42 +193,42 @@ const JobType = new GraphQLObjectType({
     time: {
       type: TimeType,
       resolve: async (src) => {
-        const job = await resolveJobByID(src.id);
+        const job = await resolvers.resolveJobByID(src.id);
         return job.time;
       },
     },
     by: {
       type: UserType,
       resolve: async (src) => {
-        const job = await resolveJobByID(src.id);
-        return resolveUserByHandle(job.by);
+        const job = await resolvers.resolveJobByID(src.id);
+        return resolvers.resolveUserByHandle(job.by);
       },
     },
     score: {
       type: GraphQLInt,
       resolve: async (src) => {
-        const job = await resolveJobByID(src.id);
+        const job = await resolvers.resolveJobByID(src.id);
         return job.score;
       },
     },
     title: {
       type: GraphQLString,
       resolve: async (src) => {
-        const job = await resolveJobByID(src.id);
+        const job = await resolvers.resolveJobByID(src.id);
         return job.title;
       },
     },
     text: {
       type: GraphQLString,
       resolve: async (src) => {
-        const job = await resolveJobByID(src.id);
+        const job = await resolvers.resolveJobByID(src.id);
         return job.text;
       },
     },
     url: {
       type: GraphQLString,
       resolve: async (src) => {
-        const job = await resolveJobByID(src.id);
+        const job = await resolvers.resolveJobByID(src.id);
         return job.url;
       },
     },
