@@ -4,7 +4,7 @@ const { promisify } = require('util');
 const log = require('loglevel');
 
 const timeout = 100; // TODO move this to some kind of configurable
-const client = redis.createClient({host: 'redis', port: '6379'}); // TODO gracefully handle no redis
+const client = redis.createClient({ url: process.env.REDIS_URL }); // TODO gracefully handle no redis
 const getAsync = promisify(client.get).bind(client);
 
 function generateOption(endpoint) {
